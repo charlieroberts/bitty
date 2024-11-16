@@ -45,7 +45,7 @@ window.bitty = {
   // load rules from external files
   rules: [],
 
-  // isString is for first load, after that 
+  // isString=true is for directly setting value
   // el should represent a node element
   process( el, isString=false ) {
     let s
@@ -57,7 +57,6 @@ window.bitty = {
     }else{
       for (const node of el.children) {
         s = node.innerText
-        console.log( 'text:', s )
         bitty.rules.forEach( rule => {
           s = s.replace( rule[0], rule[1] )
         })
