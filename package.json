@@ -4,7 +4,7 @@
   "description": "A minimal code editor for live coding performances",
   "main": "bitty.js",
   "scripts": {
-    "minify": "npx uglify-js bitty.js -c -o bitty.min.js"
+    "minify": "npx uglify-js bitty.js -c -m -o bitty.min.js"
   },
   "keywords": [
     "editor"
