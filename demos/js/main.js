@@ -1,5 +1,7 @@
 const value = 
-`function hello( name ) {
+`// hit alt+enter to run
+// view output in developer console
+function hello( name ) {
   console.log( name )
 }
  
