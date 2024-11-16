@@ -18,6 +18,19 @@ The default keybindings are:
 - Ctrl+Enter: Run (and flash) single line at current cursor location
 - Alt+Enter:  Run (and flash) block surrounding current cursor location. Blocks are delimited by blank lines (including spaces).
 
+## Syntax coloring
+bitty tries to be as flexible as possible in enabling you to decide what parts of your syntax should be highlighted and how. `bitty.rules` contains a dictionary of regular expressions associated with syntax categories. Whenever a match for a rule is found, it is surrounded in a `<span>` element with a class set to the name `bitty-yourCategoryName`. For example, given the following rules:
+
+```js
+bitty.rules = {
+  numbers: /\b(\d+)/g 
+}
+```
+
+... and the text `42` in the code editor, running the syntax coloring will produce: `<span class="bitty-numbers">42</span>`. You then define your own rules for the CSS selectors (e.g. `bitty-numbers`, `bitty-keywords`, `bitty-comments` etc.)
+
+To "disable" syntax coloring, just don't specify a value for `bitty.rules`. If you're not comfortable using regular expressions, [here is a great playground to explore](https://regexr.com/).
+
 ## To use
 Call `bitty.init()`, maybe with some config options. Then call `bitty.subscribe( 'run', callback )` to register your callback function to be called whenever code is executed. 
 
