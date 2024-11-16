@@ -3,10 +3,7 @@
   font-size:     12px; 
   outline:       none; 
   height:        100vh;
-  display:       block;
   overflow-y:    auto; 
-  padding-left:  48px; 
-  counter-reset: line; 
   white-space:   pre-wrap;
 }
 
@@ -15,7 +12,11 @@
   position: relative; 
 }
 
-/* remove next rule if you don't want line numebrs */
+/* remove next two rules if you don't want line numbers */
+.editor {
+  padding-left:  48px; 
+  counter-reset: line; 
+}
 .editor div::before { 
   content:           counter(line); 
   counter-increment: line; 
