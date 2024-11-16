@@ -1,4 +1,4 @@
-.editor { 
+.bitty-editor { 
   font-family:   'Roboto Mono', monospace; 
   font-size:     12px; 
   outline:       none; 
@@ -7,18 +7,17 @@
   white-space:   pre-wrap;
 }
 
-.editor div { 
+.bitty-editor div { 
   display:  block; 
-  min-height:12px;
   position: relative; 
 }
 
 /* remove next two rules if you don't want line numbers */
-.editor {
+.bitty-editor {
   padding-left:  48px; 
   counter-reset: line; 
 }
-.editor div::before { 
+.bitty-editor div::before { 
   content:           counter(line); 
   counter-increment: line; 
   position:          absolute; 
@@ -38,15 +37,8 @@ body {
   color:white;
 }
 
-.bitty-keywords {
-  font-weight:bold;
-}
-.bitty-strings {
-  font-style:italic;
-}
-.bitty-comments {
-  font-style:italic;
-}
-.bitty-numbers {
-  color:red;
-}
+/* syntax coloring rules */
+.bitty-keywords { font-weight:bold; }
+.bitty-strings  { font-style:italic; }
+.bitty-comments { font-style:italic; }
+.bitty-numbers  { color:red; }
