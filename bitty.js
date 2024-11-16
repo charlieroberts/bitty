@@ -8,6 +8,21 @@ window.bitty = {
   },
 
   events: {},
+
+  set value(v) {
+    let code = bitty.process( v, true )
+    code = code
+      .split('\n')
+      .map( l=> l === '' ? '<br/>' : l )
+      .map( l=>`<div>${l}</div>`)
+      .join('') 
+
+    bitty.el.innerHTML = code
+  },
+
+  get value() {
+    return bitty.el.innerText
+  },
   
   init( config={} ) {
     let el = null
@@ -18,18 +33,12 @@ window.bitty = {
       el = config.element
     }
 
+    bitty.el = el
+
     Object.assign( bitty.config, config )
-
-    const code = bitty.process( bitty.config.value, true )
-    const initialCode = code
-      .split('\n')
-      .map( l=> l === '' ? '<br/>' : l )
-      .map( l=>`<div>${l}</div>`)
-      .join('') 
-
-    el.innerHTML = initialCode
+    bitty.value = bitty.config.value
+    
     bitty.editor( el )
-
     el.focus()
   },
 
@@ -42,11 +51,9 @@ window.bitty = {
     let s
     if( isString ) {
       s = el 
-      console.log('string:', s )
       bitty.rules.forEach( rule => {
         s = s.replace( rule[0], rule[1] )
       })
-      //s = s.split('\n').join('<br/>')
     }else{
       for (const node of el.children) {
         s = node.innerText
