@@ -43,11 +43,34 @@ window.bitty = {
   },
 
   // load rules from external files
-  rules: [],
+  rules: {},
 
   // isString=true is for directly setting value
   // el should represent a node element
   process( el, isString=false ) {
+    let s
+    const keys = Object.keys( bitty.rules )
+    const rules = bitty.rules
+    if( isString ) {
+      s = el
+      for( let key of keys ) {
+        s = s.replace( rules[key], `<span class=bitty-${key}>$1</span>` )
+      }
+    }else{
+      for (const node of el.children) {
+        s = node.innerText
+        for( let key of keys ) {
+          s = s.replace( rules[key], `<span class=bitty-${key}>$1</span>` )
+        }
+
+        node.innerHTML = s.split('\n').join('<br/>')
+      }
+    }
+
+    return s
+  },
+
+  processold( el, isString=false ) {
     let s
     if( isString ) {
       s = el 
@@ -67,7 +90,7 @@ window.bitty = {
 
     return s
   },
-  
+ 
   subscribe( key, fcn ) {
     const events = bitty.events
     if( typeof events[ key ] === 'undefined' ) {
