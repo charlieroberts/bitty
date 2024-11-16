@@ -9,12 +9,14 @@ bitty is a code editor specifically developed for live coding performance. The d
 - No build script (ok, there's optionally one to minify, but it's, like, totally optional)
 - Zero dependencies
 - Prioritize simplicity over speed
+- Responsive design / mobile support
+- Accessible to alternative reading devices
 - Code annotations / visualizations (eventually)
 
 The default keybindings are:
 
-- Ctrl+Enter: Run single line at current cursor location
-- Alt+Enter:  Run block surrounding current cursor location. Blocks are delimited by blank lines (including spaces).
+- Ctrl+Enter: Run (and flash) single line at current cursor location
+- Alt+Enter:  Run (and flash) block surrounding current cursor location. Blocks are delimited by blank lines (including spaces).
 
 ## To use
 Call `bitty.init()`, maybe with some config options. Then call `bitty.subscribe( 'run', callback )` to register your callback function to be called whenever code is executed. 
