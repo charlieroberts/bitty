@@ -20,12 +20,13 @@ window.bitty = {
 
     Object.assign( bitty.config, config )
 
-    const initialCode = bitty.config.value
+    const code = bitty.process( bitty.config.value, true )
+    const initialCode = code
       .split('\n')
       .map( l=>`<div>${l}</div>`)
       .join('') 
 
-    el.innerHTML = bitty.process( initialCode, true )
+    el.innerHTML = initialCode//bitty.process( initialCode, true )
 
     bitty.editor( el )
 
@@ -41,13 +42,15 @@ window.bitty = {
     let s
     if( isString ) {
       s = el 
+      console.log('string:', s )
       bitty.rules.forEach( rule => {
         s = s.replace( rule[0], rule[1] )
       })
-      s = s.split('\n').join('<br />')
+      //s = s.split('\n').join('<br/>')
     }else{
       for (const node of el.children) {
         s = node.innerText
+        console.log( 'text:', s )
         bitty.rules.forEach( rule => {
           s = s.replace( rule[0], rule[1] )
         })
@@ -165,7 +168,7 @@ window.bitty = {
     bitty.publish( 'run', str )
   },
 
-  editor(el, highlight = bitty.js, tab = '  ') {
+  editor(el, highlight = bitty.process, tab = '  ') {
     const caret = () => {
       const range = window.getSelection().getRangeAt(0)
       const prefix = range.cloneRange()

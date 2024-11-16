@@ -1,14 +1,14 @@
 window.bitty.rules =  [
   // comments
-  //[ /(\/\/.*)/g, '<em>$1</em>'],
+  [ /(\/\/.*)/g, '<span class=bitty-comments>$1</span>'],
 
   // keywords and properties
-  [ /\b(new|if|else|do|while|switch|for|in|of|continue|break|return|typeof|function|var|const|let|\.length|\.\w+)(?=[^\w])/g, '<strong>$1</strong>'],
+  [ /\b(new|if|else|do|while|switch|for|of|continue|break|return|typeof|function|var|const|let|\.length)(?=[^\w])/g, "<span class=bitty-keywords>$1</span>"],
 
   // strings
   // extraneous multiline comment below to remove syntax highlight bug in vim
-  [ /(".*?"|'.*?'|\`.*?\`)/g, '<strong><em>$1</em></strong>' /*`*/],
+  [ /(".*?"|'.*?'|\`.*?\`)/g, '<span class=bitty-strings>$1</span>' /*`*/],
 
   // numbers
-  [ /\b(\d+)/g, '<em><strong>$1</strong></em>']
+  [ /\b(\d+)/g, '<span class=bitty-numbers>$1</span>']
 ]
