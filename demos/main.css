@@ -1,0 +1,37 @@
+.editor { 
+  font-family:   'Roboto Mono', monospace; 
+  font-size:     12px; 
+  outline:       none; 
+  height:        100vh;
+  display:       block;
+  overflow-y:    auto; 
+  padding-left:  48px; 
+  counter-reset: line; 
+  white-space:   pre-wrap;
+}
+
+.editor div { 
+  display:  block; 
+  position: relative; 
+}
+
+/* remove next rule if you don't want line numebrs */
+.editor div::before { 
+  content:           counter(line); 
+  counter-increment: line; 
+  position:          absolute; 
+  right:             calc(100% + 16px); 
+  opacity:           0.5; 
+}
+
+body { 
+  background:black;
+  padding:0;
+  margin:0;
+  color:white;
+}
+
+::selection {
+  background:#444;
+  color:white;
+}

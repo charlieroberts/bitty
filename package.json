@@ -1,0 +1,17 @@
+{
+  "name": "bitty-editor",
+  "version": "0.0.1",
+  "description": "A minimal code editor for live coding performances",
+  "main": "bitty.js",
+  "scripts": {
+    "minify": "npx uglify-js bitty.js -c -o bitty.min.js"
+  },
+  "keywords": [
+    "editor"
+  ],
+  "author": "Charlie Roberts",
+  "license": "MIT",
+  "devDependencies": {
+    "uglify-js": "^3.19.3"
+  }
+}
