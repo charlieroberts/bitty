@@ -23,11 +23,11 @@ window.bitty = {
     const code = bitty.process( bitty.config.value, true )
     const initialCode = code
       .split('\n')
+      .map( l=> l === '' ? '<br/>' : l )
       .map( l=>`<div>${l}</div>`)
       .join('') 
 
-    el.innerHTML = initialCode//bitty.process( initialCode, true )
-
+    el.innerHTML = initialCode
     bitty.editor( el )
 
     el.focus()

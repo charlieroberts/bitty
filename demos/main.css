@@ -9,6 +9,7 @@
 
 .editor div { 
   display:  block; 
+  min-height:12px;
   position: relative; 
 }
 
