@@ -1,5 +1,7 @@
 // started with code from https://zserge.com/posts/js-editor/
 window.bitty = {
+  __active:null,
+
   config: {
     flashTime:250,
     flashColor:'black',
@@ -39,6 +41,9 @@ window.bitty = {
     bitty.value = bitty.config.value
     
     bitty.editor( el )
+    bitty.__active = el.firstChild
+    bitty.__active.classList.add( 'active')
+
     el.focus()
   },
 
@@ -240,6 +245,18 @@ window.bitty = {
         highlight( el )
         setCaret( pos )
         e.preventDefault()
+      }else{
+        if( e.keyCode ===  38 || e.keyCode ===  40 ) {
+          const store = bitty.__active
+          bitty.__active.classList.remove('active')
+          bitty.__active = e.keyCode === 38 
+            ? bitty.__active.previousSibling
+            : bitty.__active.nextSibling
+
+          if( bitty.__active === null ) bitty.__active = store
+
+          bitty.__active.classList.add('active')
+        }
       }
     })
 
@@ -264,5 +281,13 @@ window.bitty = {
         }
       }
     })  
+
+    el.addEventListener( 'click', e => {
+      let node = e.target
+      while( node.localName !== 'div' ) node = node.parentElement
+      node.classList.add( 'active' )
+      if( bitty.__active !== null ) bitty.__active.classList.remove( 'active' )
+      bitty.__active = node
+    })
   }
 }

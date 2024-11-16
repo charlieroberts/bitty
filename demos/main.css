@@ -42,3 +42,5 @@ body {
 .bitty-strings  { font-style:italic; }
 .bitty-comments { font-style:italic; }
 .bitty-numbers  { color:red; }
+
+.active { background:#222 }
