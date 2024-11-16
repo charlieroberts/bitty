@@ -13,10 +13,11 @@ bitty is a code editor specifically developed for live coding performance. The d
 - Accessible to alternative reading devices
 - Code annotations / visualizations (eventually)
 
+## Key bindings
 The default keybindings are:
 
-- Ctrl+Enter: Run (and flash) single line at current cursor location
-- Alt+Enter:  Run (and flash) block surrounding current cursor location. Blocks are delimited by blank lines (including spaces).
+- `Ctrl+Enter`: Run (and flash) single line at current cursor location
+- `Alt+Enter`:  Run (and flash) block surrounding current cursor location. Blocks are delimited by blank lines (including spaces).
 
 ## Syntax coloring
 bitty tries to be as flexible as possible in enabling you to decide what parts of your syntax should be highlighted and how. `bitty.rules` contains a dictionary of regular expressions associated with syntax categories. Whenever a match for a rule is found, it is surrounded in a `<span>` element with a class set to the name `bitty-yourCategoryName`. For example, given the following rules:
