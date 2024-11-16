@@ -6,7 +6,7 @@ bitty is a code editor specifically developed for live coding performance. The d
 
 - Single file for easy include via one `<script>` tag
 - Small. bitty is currently ~3KB minified.
-- No build script*
+- No build script (ok, there's optionally one to minify, but it's like totally optional)
 - No Hypescript
 - Zero dependencies
 - Prioritize simplicity over speed. I don't care about parsing million line (or even thousand line. Not even thinking hundred lines, really...) files. Just keep it simple.
@@ -22,7 +22,7 @@ Call `bitty.init()`, maybe with some config options. Then call `bitty.subscribe(
 Here's the [javascript demo](./demos/js/main.js):
 
 ```js
-const value = 
+const initialCode = 
 `function hello( name ) {
   console.log( name )
 }
@@ -33,11 +33,11 @@ window.onload = function() {
   bitty.init({ 
     flashColor:'red',
     flashTime: 100,
-    value
+    value: initialCode
   })
 
   bitty.subscribe( 'run', eval )
 }
 ```
 
-This project is in itsearly early days, more docs / demos to come.
+This project is in its early early days, more docs / demos to come.
