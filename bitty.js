@@ -42,7 +42,7 @@ window.bitty = {
     
     bitty.editor( el )
     bitty.__active = el.firstChild
-    bitty.__active.classList.add( 'active')
+    bitty.__active.classList.add( 'bitty-active')
 
     el.focus()
   },
@@ -75,27 +75,6 @@ window.bitty = {
     return s
   },
 
-  processold( el, isString=false ) {
-    let s
-    if( isString ) {
-      s = el 
-      bitty.rules.forEach( rule => {
-        s = s.replace( rule[0], rule[1] )
-      })
-    }else{
-      for (const node of el.children) {
-        s = node.innerText
-        bitty.rules.forEach( rule => {
-          s = s.replace( rule[0], rule[1] )
-        })
-
-        node.innerHTML = s.split('\n').join('<br/>')
-      }
-    }
-
-    return s
-  },
- 
   subscribe( key, fcn ) {
     const events = bitty.events
     if( typeof events[ key ] === 'undefined' ) {
@@ -235,6 +214,34 @@ window.bitty = {
       return pos
     }
 
+    let prev = null
+    const f = function( changes, isRemove=false ) {
+      const store = bitty.__active
+      if( !isRemove ) {
+        bitty.__active.classList.remove( 'bitty-active' )
+      
+        bitty.__active = bitty.__active.nextSibling
+
+        if( bitty.__active === null ) bitty.__active = store
+
+        bitty.__active.classList.add( 'bitty-active' )
+      }else{
+        bitty.__active = prev
+        bitty.__active.classList.add( 'bitty-active' )
+      }
+    }
+
+    const observer = new MutationObserver( mutations => {
+      mutations.forEach( m => {
+        if( m.addedNodes.length ) {
+          f( m.addedNodes )
+        }else{
+          f( m.removedNodes, true )
+        }
+      })
+    })
+    observer.observe(el, { childList: true })
+
     el.addEventListener('keydown', e => {
       // handle tab key
       if(e.keyCode === 9) {
@@ -248,14 +255,16 @@ window.bitty = {
       }else{
         if( e.keyCode ===  38 || e.keyCode ===  40 ) {
           const store = bitty.__active
-          bitty.__active.classList.remove('active')
+          bitty.__active.classList.remove('bitty-active')
           bitty.__active = e.keyCode === 38 
             ? bitty.__active.previousSibling
             : bitty.__active.nextSibling
 
           if( bitty.__active === null ) bitty.__active = store
 
-          bitty.__active.classList.add('active')
+          bitty.__active.classList.add('bitty-active')
+        }else if( e.keyCode === 8 ) {
+          prev = bitty.__active.previousSibling
         }
       }
     })
@@ -285,8 +294,8 @@ window.bitty = {
     el.addEventListener( 'click', e => {
       let node = e.target
       while( node.localName !== 'div' ) node = node.parentElement
-      node.classList.add( 'active' )
-      if( bitty.__active !== null ) bitty.__active.classList.remove( 'active' )
+      node.classList.add( 'bitty-active' )
+      if( bitty.__active !== null ) bitty.__active.classList.remove( 'bitty-active' )
       bitty.__active = node
     })
   }
