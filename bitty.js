@@ -6,7 +6,8 @@ window.bitty = {
     flashTime:250,
     flashColor:'black',
     flashBackground:'white',
-    value:'// itty bitty ide'
+    value:'// itty bitty ide',
+    useActive:false
   },
 
   events: {},
@@ -41,8 +42,10 @@ window.bitty = {
     bitty.value = bitty.config.value
     
     bitty.editor( el )
-    bitty.__active = el.firstChild
-    bitty.__active.classList.add( 'bitty-active')
+    if( bitty.config.useActive ) {
+      bitty.__active = el.firstChild
+      bitty.__active.classList.add( 'bitty-active')
+    }
 
     el.focus()
   },
@@ -214,34 +217,53 @@ window.bitty = {
       return pos
     }
 
+    
     let prev = null
-    const f = function( changes, isRemove=false ) {
-      const store = bitty.__active
-      if( !isRemove ) {
-        bitty.__active.classList.remove( 'bitty-active' )
-      
-        bitty.__active = bitty.__active.nextSibling
+    if( bitty.config.useActive ) {
+      const f = function( changes, isRemove=false ) {
+        const store = bitty.__active
+        if( !isRemove ) {
+          bitty.__active.classList.remove( 'bitty-active' )
+        
+          bitty.__active = bitty.__active.nextSibling
 
-        if( bitty.__active === null ) bitty.__active = store
+          if( bitty.__active === null ) bitty.__active = store
 
-        bitty.__active.classList.add( 'bitty-active' )
-      }else{
-        bitty.__active = prev
-        bitty.__active.classList.add( 'bitty-active' )
-      }
-    }
-
-    const observer = new MutationObserver( mutations => {
-      mutations.forEach( m => {
-        if( m.addedNodes.length ) {
-          f( m.addedNodes )
+          bitty.__active.classList.add( 'bitty-active' )
         }else{
-          f( m.removedNodes, true )
+          bitty.__active = prev
+          bitty.__active.classList.add( 'bitty-active' )
         }
-      })
-    })
-    observer.observe(el, { childList: true })
+      }
 
+      const observer = new MutationObserver( mutations => {
+        mutations.forEach( m => {
+          if( m.addedNodes.length ) {
+            f( m.addedNodes )
+          }else{
+            f( m.removedNodes, true )
+          }
+        })
+      })
+      observer.observe(el, { childList: true })
+    }
+    
+
+    
+    // when pasting into a blank line, the result
+    // creates a div inside of a div. To avoid this,
+    // we remove nodes that are blank lines or only line breaks
+    // before pasting
+    el.addEventListener("paste", function(e) {
+      var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      if( text.split('\n').length === 1 ) return
+      var selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      if( e.target.innerText === '' || e.target.innerText === '\n' ) e.target.remove()
+
+      // now paste continues as usual, no blocking the default event...
+    });
+   
     el.addEventListener('keydown', e => {
       // handle tab key
       if(e.keyCode === 9) {
@@ -253,7 +275,7 @@ window.bitty = {
         setCaret( pos )
         e.preventDefault()
       }else{
-        if( e.keyCode ===  38 || e.keyCode ===  40 ) {
+        if( (e.keyCode ===  38 || e.keyCode ===  40) && bitty.config.useActive ) {
           const store = bitty.__active
           bitty.__active.classList.remove('bitty-active')
           bitty.__active = e.keyCode === 38 
@@ -263,7 +285,7 @@ window.bitty = {
           if( bitty.__active === null ) bitty.__active = store
 
           bitty.__active.classList.add('bitty-active')
-        }else if( e.keyCode === 8 ) {
+        }else if( e.keyCode === 8 && bitty.config.useActive ) {
           prev = bitty.__active.previousSibling
         }
       }
@@ -292,11 +314,13 @@ window.bitty = {
     })  
 
     el.addEventListener( 'click', e => {
-      let node = e.target
-      while( node.localName !== 'div' ) node = node.parentElement
-      node.classList.add( 'bitty-active' )
-      if( bitty.__active !== null ) bitty.__active.classList.remove( 'bitty-active' )
-      bitty.__active = node
+      if( bitty.config.useActive ) {
+        let node = e.target
+        while( node.localName !== 'div' ) node = node.parentElement
+        node.classList.add( 'bitty-active' )
+        if( bitty.__active !== null ) bitty.__active.classList.remove( 'bitty-active' )
+        bitty.__active = node
+      }
     })
   }
 }
