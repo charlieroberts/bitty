@@ -41,6 +41,7 @@ body {
 .bitty-keywords { font-weight:bold; }
 .bitty-strings  { font-style:italic; }
 .bitty-comments { font-style:italic; }
-.bitty-numbers  { color:red; }
+.bitty-numbers  { color:#faa; }
 
-.active { background:#222 }
+/* active line highlight */
+.bitty-active { background:#222 }
