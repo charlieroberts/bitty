@@ -1,16 +1,36 @@
 // started with code from https://zserge.com/posts/js-editor/
 window.bitty = {
-  __active:null,
-
   config: {
     flashTime:250,
     flashColor:'black',
     flashBackground:'white',
     value:'// itty bitty ide',
-    useActive:false
   },
 
   events: {},
+
+  // load rules from external files
+  rules: {},
+
+  init( config={} ) {
+    let el = null
+
+    if( config.element === undefined ) {
+      el = document.querySelector( `div[contenteditable="true"]` )
+    }else{
+      el = config.element
+    }
+
+    bitty.el = el
+
+    Object.assign( bitty.config, config )
+    bitty.value = bitty.config.value
+    
+    bitty.editor( el )
+    bitty.publish( 'init', el )
+
+    el.focus()
+  },
 
   set value(v) {
     let code = bitty.process( v, true )
@@ -27,32 +47,6 @@ window.bitty = {
     return bitty.el.innerText
   },
   
-  init( config={} ) {
-    let el = null
-
-    if( config.element === undefined ) {
-      el = document.querySelector( `div[contenteditable="true"]` )
-    }else{
-      el = config.element
-    }
-
-    bitty.el = el
-
-    Object.assign( bitty.config, config )
-    bitty.value = bitty.config.value
-    
-    bitty.editor( el )
-    if( bitty.config.useActive ) {
-      bitty.__active = el.firstChild
-      bitty.__active.classList.add( 'bitty-active')
-    }
-
-    el.focus()
-  },
-
-  // load rules from external files
-  rules: {},
-
   // isString=true is for directly setting value
   // el should represent a node element
   process( el, isString=false ) {
@@ -155,8 +149,7 @@ window.bitty = {
 
     // single line execution
     if( str === '' ) {
-      const anchor = sel.anchorNode
-      let parentEl = anchor.parentElement
+      let parentEl = sel.anchorNode.parentElement
 
       // each div is a line
       // make sure we're not just selecting a surrounding span or
@@ -217,38 +210,17 @@ window.bitty = {
       return pos
     }
 
-    
-    let prev = null
-    if( bitty.config.useActive ) {
-      const f = function( changes, isRemove=false ) {
-        const store = bitty.__active
-        if( !isRemove ) {
-          bitty.__active.classList.remove( 'bitty-active' )
-        
-          bitty.__active = bitty.__active.nextSibling
-
-          if( bitty.__active === null ) bitty.__active = store
-
-          bitty.__active.classList.add( 'bitty-active' )
+    const observer = new MutationObserver( mutations => {
+      mutations.forEach( m => {
+        if( m.addedNodes.length ) {
+          bitty.publish( 'nodes added', m.addedNodes )
         }else{
-          bitty.__active = prev
-          bitty.__active.classList.add( 'bitty-active' )
+          bitty.publish( 'nodes removed', m.removedNodes )
         }
-      }
-
-      const observer = new MutationObserver( mutations => {
-        mutations.forEach( m => {
-          if( m.addedNodes.length ) {
-            f( m.addedNodes )
-          }else{
-            f( m.removedNodes, true )
-          }
-        })
       })
-      observer.observe(el, { childList: true })
-    }
-    
+    })
 
+    observer.observe(el, { childList: true })
     
     // when pasting into a blank line, the result
     // creates a div inside of a div. To avoid this,
@@ -274,21 +246,15 @@ window.bitty = {
         highlight( el )
         setCaret( pos )
         e.preventDefault()
-      }else{
-        if( (e.keyCode ===  38 || e.keyCode ===  40) && bitty.config.useActive ) {
-          const store = bitty.__active
-          bitty.__active.classList.remove('bitty-active')
-          bitty.__active = e.keyCode === 38 
-            ? bitty.__active.previousSibling
-            : bitty.__active.nextSibling
-
-          if( bitty.__active === null ) bitty.__active = store
-
-          bitty.__active.classList.add('bitty-active')
-        }else if( e.keyCode === 8 && bitty.config.useActive ) {
-          prev = bitty.__active.previousSibling
-        }
+      }else if( e.keyCode === 8 ) {
+        // delete key
+        // handle edge case when no divs are present
+        // to write into by adding space; setting the value
+        // of bitty automatically creates divs
+        if( bitty.value === '\n' ) bitty.value =' '
       }
+
+      bitty.publish( 'keydown', e )
     })
 
     // handle all other non-control keys
@@ -301,6 +267,10 @@ window.bitty = {
         setCaret( pos )
       }else{
         switch( e.keyCode ) {
+          case 8:
+            // handle case when bitty is empty
+            if( bitty.value === '\n' ) bitty.value = ' '
+            break
           case 13: //enter
             if( e.ctrlKey ) {
               bitty.runSelection()
@@ -311,16 +281,9 @@ window.bitty = {
           default: break
         }
       }
+      bitty.publish( 'keyup', e )
     })  
 
-    el.addEventListener( 'click', e => {
-      if( bitty.config.useActive ) {
-        let node = e.target
-        while( node.localName !== 'div' ) node = node.parentElement
-        node.classList.add( 'bitty-active' )
-        if( bitty.__active !== null ) bitty.__active.classList.remove( 'bitty-active' )
-        bitty.__active = node
-      }
-    })
+    el.addEventListener( 'click', e => bitty.publish( 'click', e ) )
   }
 }
