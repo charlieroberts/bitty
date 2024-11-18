@@ -1,6 +1,6 @@
 {
   "name": "bitty-editor",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A minimal code editor for live coding performances",
   "main": "bitty.js",
   "scripts": {
