@@ -4,7 +4,7 @@
 
 bitty is a code editor specifically developed for live coding performance. The design goals are:
 
-- Single file for easy include via one `<script>` tag
+- Single file for basic configuration to include via one `<script>` tag
 - Small. bitty is currently ~3 KB minified. Other popular editors (albeit containing many more features) are between 125--350 KB minified.
 - No build script (ok, there's optionally one to minify, but it's, like, totally optional)
 - Zero dependencies
