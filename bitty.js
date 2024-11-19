@@ -16,7 +16,7 @@ window.bitty = {
     let el = null
 
     if( config.element === undefined ) {
-      el = document.querySelector( `div[contenteditable="true"]` )
+      el = document.querySelector( `[contenteditable="true"]` )
     }else{
       el = config.element
     }
