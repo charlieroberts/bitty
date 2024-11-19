@@ -34,9 +34,10 @@ window.bitty = {
 
   set value(v) {
     let code = bitty.process( v, true )
+    
     code = code
       .split('\n')
-      .map( l=> l === '' ? '<br/>' : l )
+      .map( l=> { return l === ' ' || l === '' ? ' ' : l })
       .map( l=>`<div>${l}</div>`)
       .join('') 
 
@@ -45,6 +46,10 @@ window.bitty = {
 
   get value() {
     return bitty.el.innerText
+  },
+
+  focus() {
+    bitty.el.focus()
   },
   
   // isString=true is for directly setting value
@@ -210,6 +215,15 @@ window.bitty = {
       return pos
     }
 
+    const checkForEmpty = function() {
+      setTimeout( v => {
+        if( bitty.el.innerHTML === '<br>' ) {
+          bitty.el.innerHTML = '<div> </div>'
+          setCaret( 0 )
+        }
+      }, 10 )
+    }
+
     const observer = new MutationObserver( mutations => {
       mutations.forEach( m => {
         if( m.addedNodes.length ) {
@@ -243,15 +257,12 @@ window.bitty = {
         const range = window.getSelection().getRangeAt( 0 )
         range.deleteContents()
         range.insertNode( document.createTextNode( tab ) )
-        highlight( el )
+        //highlight( el )
         setCaret( pos )
         e.preventDefault()
       }else if( e.keyCode === 8 ) {
         // delete key
-        // handle edge case when no divs are present
-        // to write into by adding space; setting the value
-        // of bitty automatically creates divs
-        if( bitty.value === '\n' ) bitty.value =' '
+        checkForEmpty() 
       }
 
       bitty.publish( 'keydown', e )
@@ -268,8 +279,6 @@ window.bitty = {
       }else{
         switch( e.keyCode ) {
           case 8:
-            // handle case when bitty is empty
-            if( bitty.value === '\n' ) bitty.value = ' '
             break
           case 13: //enter
             if( e.ctrlKey ) {

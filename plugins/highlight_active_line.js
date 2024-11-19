@@ -60,6 +60,7 @@ const __plugin = {
 
     plugin.__active.classList.add( 'bitty-active' )
   },
+
   'nodes removed'(changes, plugin) {
     if( plugin.__prev !== null ) {
       plugin.__active = plugin.__prev
