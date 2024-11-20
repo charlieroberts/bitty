@@ -24,17 +24,30 @@ const __plugin = {
     __plugin.instances.push( plugin )
   },
 
+  removeOthers( exempt=null ) {
+    const arr = Array.from( document.querySelectorAll('.bitty-active') )
+    arr.filter( n => n !== exempt ).forEach( n => n.classList.remove('bitty-active')  )
+  },
+
   keydown( e, plugin) {
+    // enter
     if( e.keyCode ===  38 || e.keyCode ===  40 ) {
       const store = plugin.__active
-      plugin.__active.classList.remove('bitty-active')
-      plugin.__active = e.keyCode === 38 
-        ? plugin.__active.previousSibling
-        : plugin.__active.nextSibling
+      if( plugin.__active !== null ) {
+        if( plugin.__active.classList === undefined ) debugger
+        plugin.__active.classList.remove('bitty-active')
+        
+        plugin.__active = e.keyCode === 38 
+          ? plugin.__active.previousSibling
+          : plugin.__active.nextSibling
+
+      }
 
       if( plugin.__active === null ) plugin.__active = store
 
       plugin.__active.classList.add('bitty-active')
+
+      __plugin.removeOthers( plugin.__active )
     }else if( e.keyCode === 8 ) {
       if( plugin.__active !== null ) { 
         plugin.__prev = plugin.__active.previousSibling
@@ -48,6 +61,7 @@ const __plugin = {
     node.classList.add( 'bitty-active' )
     if( plugin.__active !== null ) plugin.__active.classList.remove( 'bitty-active' )
     plugin.__active = node
+    __plugin.removeOthers( plugin.__active )
   },
 
   'nodes added'( changes, plugin ) {
@@ -59,14 +73,16 @@ const __plugin = {
     if( plugin.__active === null ) plugin.__active = store
 
     plugin.__active.classList.add( 'bitty-active' )
+    __plugin.removeOthers( plugin.__active )
   },
 
   'nodes removed'(changes, plugin) {
     if( plugin.__prev !== null ) {
       plugin.__active = plugin.__prev
       plugin.__active.classList.add( 'bitty-active' )
+      __plugin.removeOthers( plugin.__active )
     }
-  },
+  }
 }
 
 window.addEventListener( 'load', __plugin.init )
