@@ -245,7 +245,9 @@ window.bitty = {
       if( text.split('\n').length === 1 ) return
       var selection = window.getSelection();
       if (!selection.rangeCount) return;
-      if( e.target.innerText === '' || e.target.innerText === '\n' ) e.target.remove()
+      if( e.target.innerText === '' 
+        || e.target.innerText === ' ' 
+        || e.target.innerText === '\n' ) e.target.remove()
 
       // now paste continues as usual, no blocking the default event...
     });
