@@ -1,9 +1,9 @@
-let bitty = null
 const __plugin = {
   instances: [],
-  // init's only job is to get reference to bitty
+  
+  // subscribe to init notification in order to 
+  // get reference to editor element
   init() {
-    bitty = window.bitty
     bitty.subscribe( 'init', __plugin.start )
   },
 
@@ -25,8 +25,11 @@ const __plugin = {
   },
 
   removeOthers( exempt=null ) {
-    const arr = Array.from( document.querySelectorAll('.bitty-active') )
-    arr.filter( n => n !== exempt ).forEach( n => n.classList.remove('bitty-active')  )
+    const remove = node => node.classList.remove('bitty-active')
+
+    Array.from( document.querySelectorAll('.bitty-active') )
+      .filter( n => n !== exempt )
+      .forEach( remove )
   },
 
   keydown( e, plugin) {
@@ -85,4 +88,4 @@ const __plugin = {
   }
 }
 
-window.addEventListener( 'load', __plugin.init )
+__plugin.init()
