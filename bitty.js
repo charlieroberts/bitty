@@ -1,5 +1,5 @@
 // started with code from https://zserge.com/posts/js-editor/
-window.bitty = {
+let bitty = window.bitty = {
   config: {
     flashTime:250,
     flashColor:'black',
