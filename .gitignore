@@ -43,5 +43,5 @@ Thumbs.db
 ./resources/**
 
 #vim#
-*.swp
+*.sw*
 *~
