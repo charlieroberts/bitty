@@ -243,11 +243,18 @@ let bitty = window.bitty = {
     })
 
     observer.observe(el, { childList: true })
-    
-    // when pasting into a blank line, the result
-    // creates a div inside of a div. To avoid this,
-    // we remove nodes that are blank lines or only line breaks
-    // before pasting
+
+    const noDivsInDivs = function() {
+      for( let n of Array.from( bitty.el.childNodes ) ) {
+        const lines = n.querySelectorAll('div')
+        if( lines.length > 1 ) {
+          for( let l of lines ) {
+            bitty.el.insertBefore( l,n )
+          }
+        }
+      }
+    }
+
     el.addEventListener("paste", function(e) {
       var text = (e.clipboardData || window.clipboardData).getData('text/plain');
       if( text.split('\n').length === 1 ) return
@@ -258,8 +265,10 @@ let bitty = window.bitty = {
         || e.target.innerText === '\n' 
         || e.target.innerText === '<br>') e.target.remove()
 
+      setTimeout( noDivsInDivs, 0 )
       // now paste continues as usual, no blocking the default event...
     });
+    
    
     el.addEventListener('keydown', e => {
       // handle tab key
