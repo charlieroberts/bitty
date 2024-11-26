@@ -66,7 +66,7 @@ const __plugin = {
   click( e, plugin ) {
     let node = e.target
     while( node.localName !== 'div' ) node = node.parentElement
-    if( node.classList.contains('bitty-editor') return
+    if( node.classList.contains('bitty-editor') ) return
     node.classList.add( 'bitty-active' )
     if( plugin.__active !== null ) plugin.__active.classList.remove( 'bitty-active' )
     plugin.__active = node
