@@ -217,8 +217,16 @@ let bitty = window.bitty = {
 
     const checkForEmpty = function() {
       setTimeout( v => {
-        if( bitty.el.innerHTML === '<br>' ) {
-          bitty.el.innerHTML = '<div> </div>'
+        if( bitty.el.childNodes.length === 1 && bitty.el.firstChild.localName === 'br' ) {
+          const el = document.createElement('div')
+          el.innerHTML = '&nbsp;'
+          
+          // in case plugin has placed class on <br>, copy it
+          el.className = bitty.el.firstChild.className
+
+          bitty.el.firstChild.remove()
+          bitty.el.appendChild( el )
+
           setCaret( 0 )
         }
       }, 10 )
@@ -247,7 +255,8 @@ let bitty = window.bitty = {
       if (!selection.rangeCount) return;
       if( e.target.innerText === '' 
         || e.target.innerText === ' ' 
-        || e.target.innerText === '\n' ) e.target.remove()
+        || e.target.innerText === '\n' 
+        || e.target.innerText === '<br>') e.target.remove()
 
       // now paste continues as usual, no blocking the default event...
     });
