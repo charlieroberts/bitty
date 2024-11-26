@@ -46,7 +46,12 @@ const __plugin = {
 
       }
 
-      if( plugin.__active === null ) plugin.__active = store
+      if( plugin.__active === null || plugin.__active.nodeType === 3 ) {
+        plugin.__active = null
+        return
+      }
+
+      //if( plugin.__active === null ) plugin.__active = store
 
       plugin.__active.classList.add('bitty-active')
 
@@ -61,6 +66,7 @@ const __plugin = {
   click( e, plugin ) {
     let node = e.target
     while( node.localName !== 'div' ) node = node.parentElement
+    if( node.classList.contains('bitty-editor') return
     node.classList.add( 'bitty-active' )
     if( plugin.__active !== null ) plugin.__active.classList.remove( 'bitty-active' )
     plugin.__active = node
@@ -69,13 +75,17 @@ const __plugin = {
 
   'nodes added'( changes, plugin ) {
     const store = plugin.__active
-    plugin.__active.classList.remove( 'bitty-active' )
+    if( plugin.__active !== null ) {
+      plugin.__active.classList.remove( 'bitty-active' )
 
-    plugin.__active = plugin.__active.nextSibling
+      plugin.__active = plugin.__active.nextSibling
+    }
 
-    if( plugin.__active === null ) plugin.__active = store
-
-    plugin.__active.classList.add( 'bitty-active' )
+    if( plugin.__active === null && store !== null ) { 
+      plugin.__active = store
+      plugin.__active.classList.add( 'bitty-active' )
+    }
+    
     __plugin.removeOthers( plugin.__active )
   },
 
