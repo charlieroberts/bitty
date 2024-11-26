@@ -9,6 +9,7 @@ const __plugin = {
 
   start( el ) {
     const plugin = {
+      el,
       __active: null,
       __prev:   null,
     }
@@ -33,11 +34,21 @@ const __plugin = {
   },
 
   keydown( e, plugin) {
-    // enter
     if( e.keyCode ===  38 || e.keyCode ===  40 ) {
+      // up and down
       const store = plugin.__active
+      const nodes = bitty.el.childNodes
+      
+      // check to see if trying to move above first line
+      // or below last line via arrow keys
+      const isTop = store === nodes[ nodes.length - 1 ]
+      const isBottom = store === nodes[ 0 ]
+      if( (isTop && e.keyCode === 40) || (isBottom && e.keyCode === 38 ) ) {
+        return
+      }
+
       if( plugin.__active !== null ) {
-        if( plugin.__active.classList === undefined ) debugger
+        //if( plugin.__active.classList === undefined ) debugger
         plugin.__active.classList.remove('bitty-active')
         
         plugin.__active = e.keyCode === 38 
@@ -51,12 +62,11 @@ const __plugin = {
         return
       }
 
-      //if( plugin.__active === null ) plugin.__active = store
-
       plugin.__active.classList.add('bitty-active')
 
       __plugin.removeOthers( plugin.__active )
     }else if( e.keyCode === 8 ) {
+      // delete
       if( plugin.__active !== null ) { 
         plugin.__prev = plugin.__active.previousSibling
       }
@@ -66,9 +76,18 @@ const __plugin = {
   click( e, plugin ) {
     let node = e.target
     while( node.localName !== 'div' ) node = node.parentElement
-    if( node.classList.contains('bitty-editor') ) return
+
+    // clicked on editor but not a line
+    if( node === plugin.el ) {
+      const nodes = plugin.el.querySelectorAll( 'div' ) 
+      node = nodes[ nodes.length - 1 ]
+    }
+
     node.classList.add( 'bitty-active' )
-    if( plugin.__active !== null ) plugin.__active.classList.remove( 'bitty-active' )
+    if( plugin.__active !== null && plugin.__active !== node ) {
+      plugin.__active.classList.remove( 'bitty-active' )
+    }
+
     plugin.__active = node
     __plugin.removeOthers( plugin.__active )
   },
@@ -91,10 +110,17 @@ const __plugin = {
 
   'nodes removed'(changes, plugin) {
     if( plugin.__prev !== null ) {
-      plugin.__active = plugin.__prev
-      plugin.__active.classList.add( 'bitty-active' )
-      __plugin.removeOthers( plugin.__active )
+      if( plugin.el.childNodes.length === 1 ) {
+        plugin.__active = plugin.el.childNodes[0]  
+      }else{
+        plugin.__active = plugin.__prev
+        __plugin.removeOthers( plugin.__active )
+      }
+    }else{
+      plugin.__active = plugin.el.childNodes[0] 
     }
+
+    plugin.__active.classList.add( 'bitty-active' )
   }
 }
 
