@@ -70,6 +70,24 @@ const __plugin = {
       if( plugin.__active !== null ) { 
         plugin.__prev = plugin.__active.previousSibling
       }
+    }else if( e.keyCode === 37 || e.keyCode === 39 ) {
+      // left or right
+      // check to see if current focused line is not the
+      // same as the focused line after the keypress
+      // is executed
+      const sel  = window.getSelection()
+      const node = sel.focusNode.parentElement
+
+      setTimeout( ()=> {
+        const sel2 = window.getSelection()
+        const node2 = sel2.focusNode.parentElement
+        
+        if( node !== node2 ) {
+          plugin.__active = node2
+          plugin.__active.classList.add( 'bitty-active' )
+          node.classList.remove( 'bitty-active' )
+        }
+      }, 5 )
     }
   },
 
