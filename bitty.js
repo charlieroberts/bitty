@@ -266,6 +266,8 @@ let bitty = window.bitty = {
         || e.target.innerText === '<br>') e.target.remove()
 
       setTimeout( noDivsInDivs, 0 )
+
+      bitty.publish( 'paste', e )
       // now paste continues as usual, no blocking the default event...
     });
     
@@ -310,6 +312,7 @@ let bitty = window.bitty = {
           default: break
         }
       }
+
       bitty.publish( 'keyup', e )
     })  
 
