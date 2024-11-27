@@ -246,24 +246,33 @@ let bitty = window.bitty = {
 
     const noDivsInDivs = function() {
       for( let n of Array.from( bitty.el.childNodes ) ) {
-        const lines = n.querySelectorAll('div')
-        if( lines.length > 1 ) {
-          for( let l of lines ) {
-            bitty.el.insertBefore( l,n )
+        if( n.nodeType !== 3 ) {
+          const lines = n.querySelectorAll('div')
+          if( lines.length > 1 ) {
+            for( let l of lines ) {
+              bitty.el.insertBefore( l,n )
+            }
           }
         }
       }
     }
 
-    el.addEventListener("paste", function(e) {
-      var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    el.addEventListener( 'paste', e => {
+      const text = (e.clipboardData || window.clipboardData).getData('text/plain')
       if( text.split('\n').length === 1 ) return
-      var selection = window.getSelection();
-      if (!selection.rangeCount) return;
-      if( e.target.innerText === '' 
+      
+      const selection = window.getSelection()
+      
+      if (!selection.rangeCount ) return
+
+      const shouldRemoveBlank = (
+        e.target.innerText === '' 
         || e.target.innerText === ' ' 
         || e.target.innerText === '\n' 
-        || e.target.innerText === '<br>') e.target.remove()
+        || e.target.innerText === '<br>'
+      )
+
+      if( e.target !== bitty.el && shouldRemoveBlank ) e.target.remove()
 
       setTimeout( noDivsInDivs, 0 )
 
@@ -272,7 +281,7 @@ let bitty = window.bitty = {
     });
     
    
-    el.addEventListener('keydown', e => {
+    el.addEventListener( 'keydown', e => {
       // handle tab key
       if(e.keyCode === 9) {
         const pos = caret() + tab.length
