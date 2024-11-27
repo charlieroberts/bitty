@@ -18,6 +18,7 @@ const __plugin = {
     bitty.subscribe( 'nodes removed', c => __plugin['nodes removed']( c, plugin ))
     bitty.subscribe( 'keydown', e => __plugin.keydown( e, plugin ))
     bitty.subscribe( 'click', e => __plugin.click( e, plugin ))
+    bitty.subscribe( 'paste', e => __plugin.paste( e, plugin ))
 
     plugin.__active = el.firstChild
     plugin.__active.classList.add( 'bitty-active')
@@ -89,6 +90,20 @@ const __plugin = {
         }
       }, 5 )
     }
+  },
+
+  paste( e, plugin ) {
+    setTimeout( ()=> {
+    const sel  = window.getSelection()
+    const node = sel.focusNode.parentElement
+
+    if( plugin.__active !== null ) {
+      plugin.__active.classList.remove( 'bitty-active' )
+    }
+
+    plugin.__active = node
+    plugin.__active.classList.add( 'bitty-active' )
+    }, 5 )
   },
 
   click( e, plugin ) {
