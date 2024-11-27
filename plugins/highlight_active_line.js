@@ -83,9 +83,11 @@ const __plugin = {
         const sel2 = window.getSelection()
         const node2 = sel2.focusNode.parentElement
         
-        if( node !== node2 ) {
+        if( node !== node2 && node2 !== bitty.el ) {
           plugin.__active = node2
           plugin.__active.classList.add( 'bitty-active' )
+          node.classList.remove( 'bitty-active' )
+        }else if( node2 === bitty.el ) {
           node.classList.remove( 'bitty-active' )
         }
       }, 5 )
@@ -94,15 +96,20 @@ const __plugin = {
 
   paste( e, plugin ) {
     setTimeout( ()=> {
-    const sel  = window.getSelection()
-    const node = sel.focusNode.parentElement
+      const sel  = window.getSelection()
+      const node = sel.focusNode.parentElement
 
-    if( plugin.__active !== null ) {
-      plugin.__active.classList.remove( 'bitty-active' )
-    }
+      if( plugin.__active !== null ) {
+        plugin.__active.classList.remove( 'bitty-active' )
+      }
 
-    plugin.__active = node
-    plugin.__active.classList.add( 'bitty-active' )
+      if( node !== bitty.el ) {
+        plugin.__active = node
+      }else{
+        plugin.__active = bitty.el.childNodes[ bitty.el.childNodes.length - 1 ]
+      }
+
+      plugin.__active.classList.add( 'bitty-active' )
     }, 5 )
   },
 
