@@ -274,7 +274,7 @@ let bitty = window.bitty = {
 
       if( e.target !== bitty.el && shouldRemoveBlank ) e.target.remove()
 
-      setTimeout( noDivsInDivs, 0 )
+      setTimeout( ()=> { noDivsInDivs(); bitty.process( bitty.el ); }, 0 )
 
       bitty.publish( 'paste', e )
       // now paste continues as usual, no blocking the default event...
