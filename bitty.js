@@ -32,14 +32,20 @@ let bitty = window.bitty = {
     el.focus()
   },
 
-  set value(v) {
-    let code = bitty.process( v, true )
-    
-    code = code
+  divide( code ) {
+    const c = code
       .split('\n')
       .map( l=> { return l === ' ' || l === '' ? ' ' : l })
       .map( l=>`<div>${l}</div>`)
       .join('') 
+
+    return c
+  },
+
+  set value(v) {
+    let code = bitty.process( v, true )
+    
+    code = bitty.divide( code ) 
 
     bitty.el.innerHTML = code
   },
@@ -265,6 +271,11 @@ let bitty = window.bitty = {
       
       if (!selection.rangeCount ) return
 
+      // new position is:
+      // current position + (text length - line breaks)
+      let pos = caret()
+      pos += text.length - text.split('\n').length
+
       const shouldRemoveBlank = (
         e.target.innerText === '' 
         || e.target.innerText === ' ' 
@@ -274,7 +285,11 @@ let bitty = window.bitty = {
 
       if( e.target !== bitty.el && shouldRemoveBlank ) e.target.remove()
 
-      setTimeout( ()=> { noDivsInDivs(); bitty.process( bitty.el ); }, 0 )
+      setTimeout( ()=> { 
+        bitty.el.innerHTML = bitty.divide( bitty.value )
+        bitty.process( bitty.el )
+        setTimeout( ()=>{ noDivsInDivs(); setCaret( pos ) }, 0 )
+      }, 0 )
 
       bitty.publish( 'paste', e )
       // now paste continues as usual, no blocking the default event...
