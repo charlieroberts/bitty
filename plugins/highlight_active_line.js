@@ -1,8 +1,8 @@
 const __plugin = {
   instances: [],
   
-  // subscribe to init notification in order to 
-  // get reference to editor element
+  // subscribe to new notification in order to 
+  // get reference to new editors
   init() {
     bitty.subscribe( 'new', __plugin.start )
   },
@@ -15,8 +15,6 @@ const __plugin = {
       __prev:   null,
     }
 
-    _bitty.subscribe( 'nodes added', c => __plugin['nodes added']( c, plugin ))
-    _bitty.subscribe( 'nodes removed', c => __plugin['nodes removed']( c, plugin ))
     _bitty.subscribe( 'keydown', e => __plugin.keydown( e, plugin ))
     _bitty.subscribe( 'click', e => __plugin.click( e, plugin ))
     _bitty.subscribe( 'paste', e => __plugin.paste( e, plugin ))
@@ -28,149 +26,45 @@ const __plugin = {
     __plugin.instances.push( plugin )
   },
 
-  removeOthers( exempt=null ) {
+  removeOthers( plugin, exempt=null ) {
     const remove = node => node.classList.remove('bitty-active')
 
-    Array.from( document.querySelectorAll('.bitty-active') )
+    Array.from( plugin.bitty.el.querySelectorAll('.bitty-active') )
       .filter( n => n !== exempt )
       .forEach( remove )
   },
 
-  keydown( e, plugin ) {
-    if( e.keyCode ===  38 || e.keyCode ===  40 ) {
-      // up and down
-      const store = plugin.__active
-      const nodes = plugin.bitty.el.childNodes
-      
-      // check to see if trying to move above first line
-      // or below last line via arrow keys
-      const isTop = store === nodes[ nodes.length - 1 ]
-      const isBottom = store === nodes[ 0 ]
-      if( (isTop && e.keyCode === 40) || (isBottom && e.keyCode === 38 ) ) {
-        return
-      }
-
-      if( plugin.__active !== null ) {
-        //if( plugin.__active.classList === undefined ) debugger
-        plugin.__active.classList.remove('bitty-active')
-        
-        plugin.__active = e.keyCode === 38 
-          ? plugin.__active.previousSibling
-          : plugin.__active.nextSibling
-
-      }
-
-      if( plugin.__active === null || plugin.__active.nodeType === 3 ) {
-        plugin.__active = null
-        return
-      }
-
-      plugin.__active.classList.add('bitty-active')
-
-      __plugin.removeOthers( plugin.__active )
-    }else if( e.keyCode === 8 ) {
-      // delete
-      if( plugin.__active !== null ) { 
-        plugin.__prev = plugin.__active.previousSibling
-      }
-    }else if( e.keyCode === 37 || e.keyCode === 39 ) {
-      // left or right
-      // check to see if current focused line is not the
-      // same as the focused line after the keypress
-      // is executed
+  setActive( plugin, delay=5 ) {
+    setTimeout( ()=> {
+      const prev = plugin.__active 
       const sel  = window.getSelection()
-      const node = sel.focusNode.parentElement
+      let node = sel.focusNode
+      if( node.localName !== 'div' ) node = node.parentElement
 
-      setTimeout( ()=> {
-        const sel2 = window.getSelection()
-        const node2 = sel2.focusNode.parentElement
-        
-        if( node !== node2 && node2 !== bitty.el ) {
-          plugin.__active = node2
-          plugin.__active.classList.add( 'bitty-active' )
-          node.classList.remove( 'bitty-active' )
-        }else if( node2 === bitty.el ) {
-          node.classList.remove( 'bitty-active' )
-        }
-      }, 5 )
-    }
+      console.log( node, prev )
+      if( node !== prev && node !== plugin.bitty.el ) {
+        plugin.__active = node
+      }else if( node === plugin.bitty.el ) {
+        plugin.__active = plugin.bitty.el.childNodes[ plugin.bitty.el.childNodes.length - 1 ]
+      }
+
+      __plugin.removeOthers( plugin, plugin.__active )
+
+      plugin.__active.classList.add( 'bitty-active' )
+    }, delay )
+
+  },
+
+  keydown( e, plugin ) {
+    __plugin.setActive( plugin )
   },
 
   paste( e, plugin ) {
-    setTimeout( ()=> {
-      const sel  = window.getSelection()
-      const node = sel.focusNode.parentElement
-
-      if( plugin.__active !== null ) {
-        plugin.__active.classList.remove( 'bitty-active' )
-      }
-
-      if( node !== bitty.el ) {
-        plugin.__active = node
-      }else{
-        plugin.__active = plugin.bitty.el.childNodes[ bitty.el.childNodes.length - 1 ]
-      }
-
-      plugin.__active.classList.add( 'bitty-active' )
-    }, 15 )
+    __plugin.setActive( plugin, 20 )
   },
 
   click( e, plugin ) {
-    let node = e.target
-    while( node.localName !== 'div' ) node = node.parentElement
-
-    // clicked on editor but not a line
-    if( node === plugin.el ) {
-      // first need to check if click or selection
-      const sel = window.getSelection()
-      if( sel.isCollapsed ) {
-        // click
-        const nodes = plugin.el.querySelectorAll( 'div' ) 
-        node = nodes[ nodes.length - 1 ]
-      }else{
-        // selection
-        node = sel.focusNode.parentElement
-      }
-    }
-
-    node.classList.add( 'bitty-active' )
-    if( plugin.__active !== null && plugin.__active !== node ) {
-      plugin.__active.classList.remove( 'bitty-active' )
-    }
-
-    plugin.__active = node
-    __plugin.removeOthers( plugin.__active )
-  },
-
-  'nodes added'( changes, plugin ) {
-    const store = plugin.__active
-    if( plugin.__active !== null ) {
-      plugin.__active.classList.remove( 'bitty-active' )
-
-      plugin.__active = plugin.__active.nextSibling
-    }
-
-    if( plugin.__active === null && store !== null ) { 
-      plugin.__active = store
-      plugin.__active.classList.add( 'bitty-active' )
-    }
-    
-    __plugin.removeOthers( plugin.__active )
-  },
-
-  'nodes removed'(changes, plugin) {
-    if( plugin.__prev !== null ) {
-      if( plugin.bitty.el.childNodes.length === 1 ) {
-        plugin.__active = plugin.el.childNodes[0]  
-      }else{
-        plugin.__active = plugin.__prev
-        __plugin.removeOthers( plugin.__active )
-      }
-    }else{
-      plugin.__active = plugin.el.childNodes[0] 
-    }
-
-    plugin.__active.classList.add( 'bitty-active' )
+    __plugin.setActive( plugin )
   }
 }
 
