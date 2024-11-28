@@ -9,11 +9,11 @@ function hello( name ) {
 hello( 'bitty' )`
 
 window.onload = function() {
-  bitty.init({ 
+  const b = bitty.create({ 
     flashColor:'black',
     flashTime: 100,
     value
   })
 
-  bitty.subscribe( 'run', eval )
+  b.subscribe( 'run', eval )
 }

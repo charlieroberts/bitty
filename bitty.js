@@ -1,5 +1,7 @@
 // started with code from https://zserge.com/posts/js-editor/
 let bitty = window.bitty = {
+  instances: [],
+
   config: {
     flashTime:250,
     flashColor:'black',
@@ -7,11 +9,12 @@ let bitty = window.bitty = {
     value:'// itty bitty ide',
   },
 
+  events: {},
 
   // load rules from external files
   rules: {},
 
-  init( config={} ) {
+  create( config={} ) {
     let el = null
 
     if( config.el === undefined ) {
@@ -37,12 +40,21 @@ let bitty = window.bitty = {
       }
     })
 
-    Object.assign( obj, bitty.config, config, { events:{} })
+    const finalConfig = Object.assign( {}, bitty.config, config )
+    const v = finalConfig.value
+    delete finalConfig.value
+    Object.assign( obj, finalConfig, { events:{} })
+
+    if( v !== undefined ) obj.value = v
 
     obj.editor( obj, el )
-    obj.publish( 'init', el )
+    obj.publish( 'init', obj )
+
+    bitty.publish( 'new', obj )
 
     el.focus()
+
+    bitty.instances.push( obj )
 
     return obj
   },
@@ -63,12 +75,11 @@ let bitty = window.bitty = {
   
   // isString=true is for directly setting value
   // el should represent a node element
-  process( el, isString=false ) {
-    let s
-    const keys = Object.keys( bitty.rules )
-    const rules = bitty.rules
+  process( s, isString=false ) {
+    const el = this.el
+    const keys = Object.keys( this.rules )
+    const rules = this.rules
     if( isString ) {
-      s = el
       for( let key of keys ) {
         s = s.replace( rules[key], `<span class=bitty-${key}>$1</span>` )
       }
@@ -191,7 +202,7 @@ let bitty = window.bitty = {
     this.publish( 'run', str )
   },
 
-  editor( instance, el, highlight = bitty.process, tab = '  ') {
+  editor( instance, el, tab = '  ') {
     const bitty = instance
     const caret = () => {
       const range = window.getSelection().getRangeAt(0)
@@ -304,7 +315,7 @@ let bitty = window.bitty = {
 
       setTimeout( ()=> { 
         bitty.el.innerHTML = bitty.divide( bitty.value )
-        bitty.process( bitty.el )
+        bitty.process()
         setTimeout( ()=>{ noDivsInDivs(); setCaret( pos ) }, 0 )
       }, 0 )
 
@@ -337,7 +348,7 @@ let bitty = window.bitty = {
       // this stops refocusing for ctrl+a, or ctrl+enter etc.
       if ( !e.ctrlKey &&  e.keyCode >= 0x30 || e.keyCode === 0x20) {
         const pos = caret()
-        highlight( el )
+        bitty.process()
         setCaret( pos )
       }else{
         switch( e.keyCode ) {

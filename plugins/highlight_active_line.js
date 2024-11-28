@@ -4,23 +4,25 @@ const __plugin = {
   // subscribe to init notification in order to 
   // get reference to editor element
   init() {
-    bitty.subscribe( 'init', __plugin.start )
+    bitty.subscribe( 'new', __plugin.start )
   },
 
-  start( el ) {
+  start( instance ) {
+    const _bitty = instance
     const plugin = {
-      el,
+      el: instance.el,
       __active: null,
       __prev:   null,
     }
 
-    bitty.subscribe( 'nodes added', c => __plugin['nodes added']( c, plugin ))
-    bitty.subscribe( 'nodes removed', c => __plugin['nodes removed']( c, plugin ))
-    bitty.subscribe( 'keydown', e => __plugin.keydown( e, plugin ))
-    bitty.subscribe( 'click', e => __plugin.click( e, plugin ))
-    bitty.subscribe( 'paste', e => __plugin.paste( e, plugin ))
+    _bitty.subscribe( 'nodes added', c => __plugin['nodes added']( c, plugin ))
+    _bitty.subscribe( 'nodes removed', c => __plugin['nodes removed']( c, plugin ))
+    _bitty.subscribe( 'keydown', e => __plugin.keydown( e, plugin ))
+    _bitty.subscribe( 'click', e => __plugin.click( e, plugin ))
+    _bitty.subscribe( 'paste', e => __plugin.paste( e, plugin ))
 
-    plugin.__active = el.firstChild
+    plugin.bitty = _bitty
+    plugin.__active = _bitty.el.firstChild
     plugin.__active.classList.add( 'bitty-active')
 
     __plugin.instances.push( plugin )
@@ -34,11 +36,11 @@ const __plugin = {
       .forEach( remove )
   },
 
-  keydown( e, plugin) {
+  keydown( e, plugin ) {
     if( e.keyCode ===  38 || e.keyCode ===  40 ) {
       // up and down
       const store = plugin.__active
-      const nodes = bitty.el.childNodes
+      const nodes = plugin.bitty.el.childNodes
       
       // check to see if trying to move above first line
       // or below last line via arrow keys
@@ -106,7 +108,7 @@ const __plugin = {
       if( node !== bitty.el ) {
         plugin.__active = node
       }else{
-        plugin.__active = bitty.el.childNodes[ bitty.el.childNodes.length - 1 ]
+        plugin.__active = plugin.bitty.el.childNodes[ bitty.el.childNodes.length - 1 ]
       }
 
       plugin.__active.classList.add( 'bitty-active' )
@@ -158,7 +160,7 @@ const __plugin = {
 
   'nodes removed'(changes, plugin) {
     if( plugin.__prev !== null ) {
-      if( plugin.el.childNodes.length === 1 ) {
+      if( plugin.bitty.el.childNodes.length === 1 ) {
         plugin.__active = plugin.el.childNodes[0]  
       }else{
         plugin.__active = plugin.__prev

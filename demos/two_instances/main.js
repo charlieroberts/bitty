@@ -1,18 +1,30 @@
-const value = 
-`// hit alt+enter to run
-// view output in developer console
+const value1 = 
+`// this editor has syntax rules for
+// highlighting comments, function 
+// declarations, and strings.
 
-function hello( name ) {
+window.hello1 = function( name ) {
   console.log( name )
 }
 
-hello( 'bitty' )`
+hello1( 'bitty1' )`
+
+const value2 = 
+`// this editor has a different set
+// of syntax rules; only comments
+// are highlighted.
+
+window.hello2 = function( name ) {
+  console.log( name )
+}
+
+hello2( 'bitty2' )`
 
 window.onload = function() {
-  const b1 = bitty.init({ 
+  const b1 = bitty.create({ 
     flashColor:'black',
     flashTime: 100,
-    value,
+    value:value1,
     el: document.querySelector('.one')
   })
   
@@ -21,11 +33,14 @@ window.onload = function() {
     eval( txt )
   })
   
-  const b2 = bitty.init({ 
+  const b2 = bitty.create({ 
     flashColor:'black',
     flashTime: 100,
-    value,
-    el: document.querySelector('.two')
+    value:value2,
+    el: document.querySelector('.two'),
+    rules : {
+     comments: /(\/\/.*)/g
+    }
   })
 
   b2.subscribe( 'run', txt => {
