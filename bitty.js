@@ -7,7 +7,6 @@ let bitty = window.bitty = {
     value:'// itty bitty ide',
   },
 
-  events: {},
 
   // load rules from external files
   rules: {},
@@ -15,21 +14,37 @@ let bitty = window.bitty = {
   init( config={} ) {
     let el = null
 
-    if( config.element === undefined ) {
+    if( config.el === undefined ) {
       el = document.querySelector( `[contenteditable="true"]` )
     }else{
-      el = config.element
+      el = config.el
     }
 
-    bitty.el = el
+    const obj = Object.create( bitty )
+    obj.el = el
 
-    Object.assign( bitty.config, config )
-    bitty.value = bitty.config.value
+    Object.defineProperty( obj, 'value', {
+      set(v) {
+        let code = this.process( v, true )
     
-    bitty.editor( el )
-    bitty.publish( 'init', el )
+        code = this.divide( code ) 
+
+        this.el.innerHTML = code
+      },
+
+      get() {
+        return this.el.innerText
+      }
+    })
+
+    Object.assign( obj, bitty.config, config, { events:{} })
+
+    obj.editor( obj, el )
+    obj.publish( 'init', el )
 
     el.focus()
+
+    return obj
   },
 
   divide( code ) {
@@ -42,20 +57,8 @@ let bitty = window.bitty = {
     return c
   },
 
-  set value(v) {
-    let code = bitty.process( v, true )
-    
-    code = bitty.divide( code ) 
-
-    bitty.el.innerHTML = code
-  },
-
-  get value() {
-    return bitty.el.innerText
-  },
-
   focus() {
-    bitty.el.focus()
+    this.el.focus()
   },
   
   // isString=true is for directly setting value
@@ -84,7 +87,7 @@ let bitty = window.bitty = {
   },
 
   subscribe( key, fcn ) {
-    const events = bitty.events
+    const events = this.events
     if( typeof events[ key ] === 'undefined' ) {
       events[ key ] = []
     }
@@ -92,7 +95,7 @@ let bitty = window.bitty = {
   },
 
   unsubscribe( key, fcn ) {
-    const events = bitty.events
+    const events = this.events
     if( typeof events[ key ] !== 'undefined' ) {
       const arr = events[ key ]
 
@@ -101,7 +104,7 @@ let bitty = window.bitty = {
   },
 
   publish( key, data ) {
-    const events = bitty.events
+    const events = this.events
     if( typeof events[ key ] !== 'undefined' ) {
       const arr = events[ key ]
 
@@ -147,11 +150,11 @@ let bitty = window.bitty = {
           d.style.color = pcolor
         }
       })
-    }, bitty.config.flashTime )
+    }, this.config.flashTime )
 
     str = divs.map( d => d.innerText ).join('\n')
 
-    bitty.publish( 'run', str )
+    this.publish( 'run', str )
   },
 
   runSelection() {
@@ -176,7 +179,7 @@ let bitty = window.bitty = {
       setTimeout( ()=> {
         parentEl.style.background = prevBg
         parentEl.style.color = prevColor
-      }, bitty.config.flashTime )
+      }, this.config.flashTime )
 
     }else{
       // flash selection
@@ -185,10 +188,11 @@ let bitty = window.bitty = {
       setTimeout( ()=> sheet.removeRule( idx ), 250 )
     }
 
-    bitty.publish( 'run', str )
+    this.publish( 'run', str )
   },
 
-  editor(el, highlight = bitty.process, tab = '  ') {
+  editor( instance, el, highlight = bitty.process, tab = '  ') {
+    const bitty = instance
     const caret = () => {
       const range = window.getSelection().getRangeAt(0)
       const prefix = range.cloneRange()

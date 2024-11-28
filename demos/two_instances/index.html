@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <title>bitty--two instances</title>
+    <link href='../main.css' rel='stylesheet' />  
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
+    
+    <script src='../../bitty.js' defer></script>
+    <script src='../../rules/javascript.js' defer></script>
+    <script src='main.js' defer></script>
+
+    <style>
+      .one, .two { 
+        height: 50% !important; 
+        position:absolute;
+        width:100%;
+      }
+      .two { top:50% !important; background:red !important }
+    </style>
+  </head>
+
+  <body>
+    <div class="bitty-editor one" contenteditable="true" spellcheck="false"></div>
+    <div class="bitty-editor two" contenteditable="true" spellcheck="false"></div>
+  </body>
+</html>
