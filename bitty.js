@@ -234,6 +234,17 @@ let bitty = window.bitty = {
           bitty.el.appendChild( el )
 
           setCaret( 0 )
+        }else{
+          const nodes = Array.from( bitty.el.childNodes )
+          for( let node of nodes ) {
+            if( node.localName === 'br' ) { // line break
+              const div = document.createElement( 'div' )
+              const pos = caret()
+              div.innerHTML = '&nbsp;'
+              node.replaceWith( div )
+              setCaret( pos + 1 )
+            }
+          }
         }
       }, 10 )
     }
