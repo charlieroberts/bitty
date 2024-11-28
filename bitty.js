@@ -274,7 +274,9 @@ let bitty = window.bitty = {
       // new position is:
       // current position + (text length - line breaks)
       let pos = caret()
-      pos += text.length - text.split('\n').length
+      // subtract one from length as last line won't actually contain line break
+      const lineBreakCount = text.split('\n').length - 1
+      pos += text.length - lineBreakCount 
 
       const shouldRemoveBlank = (
         e.target.innerText === '' 
