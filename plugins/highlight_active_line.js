@@ -110,7 +110,7 @@ const __plugin = {
       }
 
       plugin.__active.classList.add( 'bitty-active' )
-    }, 5 )
+    }, 15 )
   },
 
   click( e, plugin ) {
@@ -119,8 +119,16 @@ const __plugin = {
 
     // clicked on editor but not a line
     if( node === plugin.el ) {
-      const nodes = plugin.el.querySelectorAll( 'div' ) 
-      node = nodes[ nodes.length - 1 ]
+      // first need to check if click or selection
+      const sel = window.getSelection()
+      if( sel.isCollapsed ) {
+        // click
+        const nodes = plugin.el.querySelectorAll( 'div' ) 
+        node = nodes[ nodes.length - 1 ]
+      }else{
+        // selection
+        node = sel.focusNode.parentElement
+      }
     }
 
     node.classList.add( 'bitty-active' )
