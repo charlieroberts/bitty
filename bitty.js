@@ -14,6 +14,59 @@ let bitty = window.bitty = {
   // load rules from external files
   rules: {},
 
+  undoManager( bitty ) {
+    const manager = {
+      history:[],
+
+      // load rules from external files
+      rules: {},
+
+      undoIdx: 0,
+
+      // undo/redo adapted from 
+      // https://stackoverflow.com/questions/28217539/allowing-contenteditable-to-undo-after-dom-modification
+      save( force ) {
+        // if we already used undo and made modification - delete all forward history
+        if( this.undoIdx < this.history.length - 1 ){
+          this.history = this.history.slice( 0, this.undoIdx + 1 )
+          this.undoIdx++
+        }
+        const txt = bitty.el.innerHTML;
+        
+        // if current state identical to previous don't save identical states
+        if( txt !== this.history[ this.undoIdx ] || force === 1 ){
+          this.history.push( txt )
+          this.undoIdx = this.history.length - 1
+        }
+
+        while( this.history.length > 50 ) {
+          this.history.shift()
+        }
+      },
+
+      undo(){
+        if( this.undoIdx > 0 ) {
+          const txt = this.history[ this.undoIdx - 1 ]
+          bitty.el.innerHTML = txt
+          this.undoIdx--
+        }
+      },
+
+      redo(){
+        if( this.history[ this.undoIdx + 1 ] ) {
+          const txt = this.history[ this.undoIdx + 1 ]       
+          bitty.el.innerHTML = txt
+          this.undoIdx++
+        }
+      },
+    }
+
+    bitty.subscribe( 'keydown', manager.save.bind( manager ) )
+    bitty.subscribe( 'paste',   manager.save.bind( manager ) )
+
+    return manager
+  },
+
   create( config={} ) {
     let el = null
 
@@ -49,6 +102,7 @@ let bitty = window.bitty = {
 
     obj.editor( obj, el )
     obj.publish( 'init', obj )
+    obj.undoManager = bitty.undoManager( obj )
 
     bitty.publish( 'new', obj )
 
@@ -274,7 +328,7 @@ let bitty = window.bitty = {
       })
     })
 
-    observer.observe(el, { childList: true })
+    //observer.observe(el, { childList: true })
 
     const noDivsInDivs = function() {
       for( let n of Array.from( bitty.el.childNodes ) ) {
@@ -320,6 +374,7 @@ let bitty = window.bitty = {
       }, 0 )
 
       bitty.publish( 'paste', e )
+
       // now paste continues as usual, no blocking the default event...
     });
     
@@ -339,7 +394,13 @@ let bitty = window.bitty = {
         checkForEmpty() 
       }
 
-      bitty.publish( 'keydown', e )
+      if( e.key === 'z' && e.ctrlKey ) {
+        bitty.undoManager.undo()
+      }else if( e.key === 'y' && e.ctrlKey ) {
+        bitty.undoManager.redo()
+      }else{
+        bitty.publish( 'keydown', e )
+      }
     })
 
     // handle all other non-control keys
