@@ -328,7 +328,7 @@ let bitty = window.bitty = {
       })
     })
 
-    //observer.observe(el, { childList: true })
+    observer.observe(el, { childList: true })
 
     const noDivsInDivs = function() {
       for( let n of Array.from( bitty.el.childNodes ) ) {
