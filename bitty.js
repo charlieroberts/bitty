@@ -2,6 +2,11 @@
 let bitty = window.bitty = {
   instances: [],
 
+  uid:0,
+  getUID() {
+    return this.uid++
+  },
+
   config: {
     flashTime:250,
     flashColor:'black',
@@ -13,6 +18,49 @@ let bitty = window.bitty = {
 
   // load rules from external files
   rules: {},
+
+  keyManager( bitty ) {
+    const manager = {
+      bitty,
+      combos: [],
+
+      process( e ) {
+        for( let key of manager.combos ) {
+          if( e.key === key.key ) {
+
+            if( key.ctrl && !e.ctrlKey )   continue
+            if( key.shift && !e.shiftKey ) continue
+            if( key.alt && !e.altKey )     continue
+            if( key.meta && !e.metaKey )   continue
+
+            key.fnc( e )
+
+            return
+          }
+        }   
+      },
+
+      register( keyStr, fnc ) {
+        const parts = keyStr.split( '+' )
+        const k = { key: parts[ parts.length - 1 ] }
+
+        if( parts.length > 1 ) {
+          for( let i = 0; i < parts.length - 1; i++ ) {
+            const mod = parts[ i ].toLowerCase()
+            k[ mod ] = true
+          }
+        }
+
+        k.fnc = fnc
+
+        manager.combos.push( k )
+      },
+    }
+
+    bitty.subscribe( 'keydown', manager.process.bind( manager ) )
+    
+    return manager
+  },
 
   undoManager( bitty ) {
     const manager = {
@@ -96,13 +144,14 @@ let bitty = window.bitty = {
     const finalConfig = Object.assign( {}, bitty.config, config )
     const v = finalConfig.value
     delete finalConfig.value
-    Object.assign( obj, finalConfig, { events:{} })
+    Object.assign( obj, finalConfig, { events:{}, timeout:null })
 
     if( v !== undefined ) obj.value = v
 
     obj.editor( obj, el )
     obj.publish( 'init', obj )
     obj.undoManager = bitty.undoManager( obj )
+    obj.keyManager  = bitty.keyManager( obj )
 
     bitty.publish( 'new', obj )
 
@@ -201,20 +250,21 @@ let bitty = window.bitty = {
       divs.push( parentEl )
     }
 
-    divs.forEach( d => {
-      if( d.style ) {
-        d.style.background = bitty.config.flashBackground
-        d.style.color = bitty.config.flashColor
-      }
-    })
+    const sheet = document.styleSheets[0]
+    const flashClass = `flash${this.getUID()}`
+
+    const rule = `.${flashClass} { 
+      background: ${bitty.config.flashBackground};
+      color: ${bitty.config.flashColor};
+    }`
+
+    const idx = sheet.insertRule( rule )
+
+    divs.forEach( d => d.classList.add( flashClass ) )
 
     setTimeout( _ => {
-      divs.forEach( d => {
-        if( d.style ){
-          d.style.background = pbg
-          d.style.color = pcolor
-        }
-      })
+      divs.forEach( d => d.classList.remove( flashClass ) )
+      sheet.removeRule( idx )
     }, this.config.flashTime )
 
     str = divs.map( d => d.innerText ).join('\n')
@@ -226,6 +276,8 @@ let bitty = window.bitty = {
     const sel = window.getSelection()
     let str   = sel.toString()
 
+    const sheet = document.styleSheets[0]
+
     // single line execution
     if( str === '' ) {
       let parentEl = sel.anchorNode.parentElement
@@ -235,17 +287,23 @@ let bitty = window.bitty = {
       // other element and getting all the way to the line div
       while( parentEl.localName !== 'div' ) parentEl = parentEl.parentElement
 
+      // code to execute
       str = parentEl.innerText
-      const prevBg = parentEl.style.background
-      const prevColor = parentEl.style.color
-      parentEl.style.background = bitty.config.flashBackground
-      parentEl.style.color = bitty.config.flashColor
+
+      const flashClass = `flash${this.getUID()}`
+      parentEl.classList.add( flashClass )
+
+      const rule = `.${flashClass} { 
+        background: ${bitty.config.flashBackground};
+        color: ${bitty.config.flashColor};
+      }`
+
+      const idx = sheet.insertRule( rule )
 
       setTimeout( ()=> {
-        parentEl.style.background = prevBg
-        parentEl.style.color = prevColor
+        sheet.removeRule( idx )
+        parentEl.classList.remove( flashClass )
       }, this.config.flashTime )
-
     }else{
       // flash selection
       const sheet = document.styleSheets[0]
@@ -392,6 +450,16 @@ let bitty = window.bitty = {
       }else if( e.keyCode === 8 ) {
         // delete key
         checkForEmpty() 
+      }else if( e.keyCode === 13 ) {
+        if( e.ctrlKey ) {
+          //e.stopImmediatePropagation()
+          e.preventDefault()
+          bitty.runSelection()
+        }else if( e.altKey ) {
+          //e.stopImmediatePropagation()
+          e.preventDefault()
+          bitty.runBlock()
+        }
       }
 
       // undo/redo, can't seem to register for
@@ -419,19 +487,6 @@ let bitty = window.bitty = {
         const pos = caret()
         bitty.process()
         setCaret( pos )
-      }else{
-        switch( e.keyCode ) {
-          case 8:
-            break
-          case 13: //enter
-            if( e.ctrlKey ) {
-              bitty.runSelection()
-            }else if( e.altKey ) {
-              bitty.runBlock()
-            }
-            break
-          default: break
-        }
       }
 
       bitty.publish( 'keyup', e )
