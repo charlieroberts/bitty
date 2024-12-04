@@ -394,10 +394,18 @@ let bitty = window.bitty = {
         checkForEmpty() 
       }
 
-      if( e.key === 'z' && e.ctrlKey ) {
-        bitty.undoManager.undo()
-      }else if( e.key === 'y' && e.ctrlKey ) {
+      // undo/redo, can't seem to register for
+      // shift+ctrl+z for redo so using ctrl+y
+      if( e.key === 'z' && ( e.ctrlKey || e.metaKey ) ) {
+        if( e.shiftKey ) {
+          bitty.undoManager.redo()
+        }else{
+          bitty.undoManager.undo()
+        }
+        e.preventDefault()
+      }else if( e.key === 'y' && ( e.ctrlKey || e.metaKey ) ) {
         bitty.undoManager.redo()
+        e.preventDefault()
       }else{
         bitty.publish( 'keydown', e )
       }
