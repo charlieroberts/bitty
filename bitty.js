@@ -324,12 +324,12 @@ let bitty = window.bitty = {
       return prefix.toString().length
     }
 
-    const setCaret = (pos, parent = el) => {
+    const setCaret = (pos, parent = el, _sel = null) => {
       for(const node of parent.childNodes) {
-        if(node.nodeType == Node.TEXT_NODE) {
+        if(node.nodeType === 3 ) {
           if(node.length >= pos) {
             const range = document.createRange()
-            const sel = window.getSelection()
+            const sel = _sel || window.getSelection()
             range.setStart(node, pos)
             range.collapse(true)
             sel.removeAllRanges()
@@ -339,10 +339,8 @@ let bitty = window.bitty = {
             pos = pos - node.length
           }
         } else {
-          pos = setCaret(pos, node)
-          if (pos < 0) {
-            return pos
-          }
+          pos = setCaret(pos, node, _sel )
+          if (pos < 0) break
         }
       }
       return pos
@@ -486,7 +484,8 @@ let bitty = window.bitty = {
       if ( !e.ctrlKey &&  e.keyCode >= 0x30 || e.keyCode === 0x20) {
         const pos = caret()
         bitty.process()
-        setCaret( pos )
+        const sel = window.getSelection()
+        setCaret( pos, sel.anchorNode.parentNode, sel )
       }
 
       bitty.publish( 'keyup', e )
