@@ -316,6 +316,7 @@ let bitty = window.bitty = {
 
   editor( instance, el, tab = '  ') {
     const bitty = instance
+    let lastKeyDownCode = 0
     const caret = () => {
       const range = window.getSelection().getRangeAt(0)
       const prefix = range.cloneRange()
@@ -438,6 +439,10 @@ let bitty = window.bitty = {
     
    
     el.addEventListener( 'keydown', e => {
+      // register last key down code if not a control character
+      if(e.key.length === 1 || e.key === 'Tab' || e.key === 'Enter'){
+        lastKeyDownCode = e.keyCode
+      }
       // handle tab key
       if(e.keyCode === 9) {
         const pos = caret() + tab.length
@@ -481,9 +486,9 @@ let bitty = window.bitty = {
 
     // handle all other non-control keys
     el.addEventListener('keyup', e => {
-      // do not refocus if ctrl key is pressed
+      // do not refocus if ctrl key is pressed or if the last key down is enter
       // this stops refocusing for ctrl+a, or ctrl+enter etc.
-      if ( !e.ctrlKey &&  e.keyCode >= 0x30 || e.keyCode === 0x20) {
+      if (lastKeyDownCode != 13 && !e.ctrlKey &&  e.keyCode >= 0x30 || e.keyCode === 0x20) {
         const pos = caret()
         bitty.process()
         setCaret( pos )
