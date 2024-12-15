@@ -41,7 +41,14 @@ body {
 .bitty-keywords { font-weight:bold; }
 .bitty-strings  { font-style:italic; }
 .bitty-comments { font-style:italic; }
-.bitty-numbers  { color:#faa; }
+
+/* 
+ * fancy pseudo-selector to not color numbers when they are inside
+ * coments or strings
+ */
+.bitty-numbers:not( .bitty-strings > span, .bitty-comments > span )  { 
+  color:#faa; 
+}
 
 /* active line highlight */
 .bitty-active { background:#222 }
