@@ -486,7 +486,7 @@ let bitty = window.bitty = {
     el.addEventListener('keyup', e => {
       // do not refocus if ctrl key is pressed or if the last key down is enter
       // this stops refocusing for ctrl+a, or ctrl+enter etc.
-      if (lastKeyDownCode != 13 && !e.ctrlKey &&  e.keyCode >= 0x30 || e.keyCode === 0x20) {
+      if (lastKeyDownCode !== 13 && !e.ctrlKey && e.keyCode >= 0x30 || e.keyCode === 0x20) {
         const pos = caret()
         bitty.process()
         const sel = window.getSelection()
