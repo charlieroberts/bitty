@@ -1,5 +1,5 @@
 // started with code from https://zserge.com/posts/js-editor/
-let bitty = window.bitty = {
+const bitty = window.bitty = {
   instances: [],
 
   uid:0,
@@ -314,93 +314,102 @@ let bitty = window.bitty = {
     this.publish( 'run', str )
   },
 
-  editor( instance, el, tab = '  ') {
-    const bitty = instance
-    let lastKeyDownCode = 0
-    const caret = () => {
-      const range = window.getSelection().getRangeAt(0)
-      const prefix = range.cloneRange()
-      prefix.selectNodeContents(el)
-      prefix.setEnd(range.endContainer, range.endOffset)
-      return prefix.toString().length
-    }
 
-    const setCaret = (pos, parent = el, _sel = null) => {
-      for(const node of parent.childNodes) {
-        if(node.nodeType === 3 ) {
-          if(node.length >= pos) {
-            const range = document.createRange()
-            const sel = _sel || window.getSelection()
-            range.setStart(node, pos)
-            range.collapse(true)
-            sel.removeAllRanges()
-            sel.addRange(range)
-            return -1
-          } else {
-            pos = pos - node.length
-          }
+  caret() {
+    const range = window.getSelection().getRangeAt(0)
+    const prefix = range.cloneRange()
+    prefix.selectNodeContents( this.el )
+    prefix.setEnd( range.endContainer, range.endOffset )
+    return prefix.toString().length
+  },
+
+  setCaret( pos, parent = this.el, _sel = null ) {
+    for(const node of parent.childNodes) {
+      if(node.nodeType === 3 ) {
+        if(node.length >= pos) {
+          const range = document.createRange()
+          const sel = _sel || window.getSelection()
+          range.setStart(node, pos)
+          range.collapse(true)
+          sel.removeAllRanges()
+          sel.addRange(range)
+          return -1
         } else {
-          pos = setCaret(pos, node, _sel )
-          if (pos < 0) break
+          pos = pos - node.length
+        }
+      } else {
+        pos = this.setCaret( pos, node, _sel )          
+        if (pos < 0) break
+      }
+    }
+    return pos
+  },
+
+  checkForEmpty() {
+    setTimeout( v => {
+      if( this.el.childNodes.length === 1 && this.el.firstChild.localName === 'br' ) {
+        const el = document.createElement('div')
+        el.innerHTML = '&nbsp;'
+
+        // in case plugin has placed class on <br>, copy it
+        el.className = this.el.firstChild.className
+
+        this.el.firstChild.remove()
+        this.el.appendChild( el )
+
+        this.setCaret( 0 )
+      }else{
+        const nodes = Array.from( this.el.childNodes )
+        for( let node of nodes ) {
+          if( node.localName === 'br' ) { // line break
+            const div = document.createElement( 'div' )
+            const pos = this.caret()
+            div.innerHTML = '&nbsp;'
+            node.replaceWith( div )
+            this.setCaret( pos + 1 )
+          }
         }
       }
-      return pos
-    }
+    }, 10 )
+  },
 
-    const checkForEmpty = function() {
-      setTimeout( v => {
-        if( bitty.el.childNodes.length === 1 && bitty.el.firstChild.localName === 'br' ) {
-          const el = document.createElement('div')
-          el.innerHTML = '&nbsp;'
-          
-          // in case plugin has placed class on <br>, copy it
-          el.className = bitty.el.firstChild.className
-
-          bitty.el.firstChild.remove()
-          bitty.el.appendChild( el )
-
-          setCaret( 0 )
-        }else{
-          const nodes = Array.from( bitty.el.childNodes )
-          for( let node of nodes ) {
-            if( node.localName === 'br' ) { // line break
-              const div = document.createElement( 'div' )
-              const pos = caret()
-              div.innerHTML = '&nbsp;'
-              node.replaceWith( div )
-              setCaret( pos + 1 )
-            }
+  noDivsInDivs() {
+    for( let n of Array.from( this.el.childNodes ) ) {
+      if( n.nodeType !== 3 ) {
+        const lines = n.querySelectorAll('div')
+        if( lines.length > 1 ) {
+          for( let l of lines ) {
+            this.el.insertBefore( l,n )
           }
         }
-      }, 10 )
+      }
     }
+  },
 
+  editor( instance, el, tab = '  ') {
+    instance.lastKeyDownCode = 0
+  
     const observer = new MutationObserver( mutations => {
       mutations.forEach( m => {
         if( m.addedNodes.length ) {
-          bitty.publish( 'nodes added', m.addedNodes )
+          instance.publish( 'nodes added', m.addedNodes )
         }else{
-          bitty.publish( 'nodes removed', m.removedNodes )
+          instance.publish( 'nodes removed', m.removedNodes )
         }
       })
     })
 
-    observer.observe(el, { childList: true })
+    observer.observe( el, { childList: true })
 
-    const noDivsInDivs = function() {
-      for( let n of Array.from( bitty.el.childNodes ) ) {
-        if( n.nodeType !== 3 ) {
-          const lines = n.querySelectorAll('div')
-          if( lines.length > 1 ) {
-            for( let l of lines ) {
-              bitty.el.insertBefore( l,n )
-            }
-          }
-        }
-      }
+    el.addEventListener( 'click', e => instance.publish( 'click', e ) )
+
+    for( let key in window.bitty.events ) {
+      el.addEventListener( key, window.bitty.events[ key ].bind( instance ) )
     }
+  },
 
-    el.addEventListener( 'paste', e => {
+  events: {
+    paste( e ) { //el.addEventListener( 'paste', e => {
       const text = (e.clipboardData || window.clipboardData).getData('text/plain')
       if( text.split('\n').length === 1 ) return
       
@@ -410,7 +419,7 @@ let bitty = window.bitty = {
 
       // new position is:
       // current position + (text length - line breaks)
-      let pos = caret()
+      let pos = this.caret()
       // subtract one from length as last line won't actually contain line break
       const lineBreakCount = text.split('\n').length - 1
       pos += text.length - lineBreakCount 
@@ -422,46 +431,46 @@ let bitty = window.bitty = {
         || e.target.innerText === '<br>'
       )
 
-      if( e.target !== bitty.el && shouldRemoveBlank ) e.target.remove()
+      if( e.target !== this.el && shouldRemoveBlank ) e.target.remove()
 
       setTimeout( ()=> { 
-        bitty.el.innerHTML = bitty.divide( bitty.value )
-        bitty.process()
-        setTimeout( ()=>{ noDivsInDivs(); setCaret( pos ) }, 0 )
+        this.el.innerHTML = this.divide( this.value )
+        this.process()
+        setTimeout( ()=>{ this.noDivsInDivs(); this.setCaret( pos ) }, 0 )
       }, 0 )
 
-      bitty.publish( 'paste', e )
+      this.publish( 'paste', e )
 
       // now paste continues as usual, no blocking the default event...
-    });
+    },
     
    
-    el.addEventListener( 'keydown', e => {
+    keydown( e ) { //el.addEventListener( 'keydown', e => {
       // register last key down code if not a control character
       if(e.key.length === 1 || e.key === 'Tab' || e.key === 'Enter'){
-        lastKeyDownCode = e.keyCode
+        this.lastKeyDownCode = e.keyCode
       }
       // handle tab key
       if(e.keyCode === 9) {
-        const pos = caret() + tab.length
+        const pos = this.caret() + tab.length
         const range = window.getSelection().getRangeAt( 0 )
         range.deleteContents()
         range.insertNode( document.createTextNode( tab ) )
         //highlight( el )
-        setCaret( pos )
+        this.setCaret( pos )
         e.preventDefault()
       }else if( e.keyCode === 8 ) {
         // delete key
-        checkForEmpty() 
+        this.checkForEmpty() 
       }else if( e.keyCode === 13 ) {
         if( e.ctrlKey ) {
           //e.stopImmediatePropagation()
           e.preventDefault()
-          bitty.runSelection()
+          this.runSelection()
         }else if( e.altKey ) {
           //e.stopImmediatePropagation()
           e.preventDefault()
-          bitty.runBlock()
+          this.runBlock()
         }
       }
 
@@ -469,33 +478,32 @@ let bitty = window.bitty = {
       // shift+ctrl+z for redo so using ctrl+y
       if( e.key === 'z' && ( e.ctrlKey || e.metaKey ) ) {
         if( e.shiftKey ) {
-          bitty.undoManager.redo()
+          this.undoManager.redo()
         }else{
-          bitty.undoManager.undo()
+          this.undoManager.undo()
         }
         e.preventDefault()
       }else if( e.key === 'y' && ( e.ctrlKey || e.metaKey ) ) {
-        bitty.undoManager.redo()
+        this.undoManager.redo()
         e.preventDefault()
       }else{
-        bitty.publish( 'keydown', e )
+        this.publish( 'keydown', e )
       }
-    })
+    },
 
     // handle all other non-control keys
-    el.addEventListener('keyup', e => {
+    keyup( e ) { //el.addEventListener('keyup', e => {
       // do not refocus if ctrl key is pressed or if the last key down is enter
       // this stops refocusing for ctrl+a, or ctrl+enter etc.
-      if (lastKeyDownCode !== 13 && !e.ctrlKey && e.keyCode >= 0x30 || e.keyCode === 0x20) {
-        const pos = caret()
-        bitty.process()
+      if ( this.lastKeyDownCode !== 13 && !e.ctrlKey && e.keyCode >= 0x30 || e.keyCode === 0x20) {
+        const pos = this.caret()
+        this.process()
         const sel = window.getSelection()
-        setCaret( pos, sel.anchorNode.parentNode, sel )
+        this.setCaret( pos, sel.anchorNode.parentNode, sel )
       }
 
-      bitty.publish( 'keyup', e )
-    })  
+      this.publish( 'keyup', e )
+    }  
 
-    el.addEventListener( 'click', e => bitty.publish( 'click', e ) )
   }
 }
