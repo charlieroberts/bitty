@@ -359,18 +359,9 @@ const bitty = window.bitty = {
 
         this.setCaret( 0 )
       }else{
-        const nodes = Array.from( this.el.childNodes )
-        for( let node of nodes ) {
-          if( node.localName === 'br' ) { // line break
-            const div = document.createElement( 'div' )
-            const pos = this.caret()
-            div.innerHTML = '&nbsp;'
-            node.replaceWith( div )
-            this.setCaret( pos + 1 )
-          }
-        }
+        this.el.normalize()
       }
-    }, 10 )
+    }, 5 )
   },
 
   noDivsInDivs() {
@@ -462,6 +453,7 @@ const bitty = window.bitty = {
       }else if( e.keyCode === 8 ) {
         // delete key
         this.checkForEmpty() 
+        //this.el.normalize()
       }else if( e.keyCode === 13 ) {
         if( e.ctrlKey ) {
           //e.stopImmediatePropagation()
