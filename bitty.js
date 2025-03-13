@@ -453,7 +453,6 @@ const bitty = window.bitty = {
       }else if( e.keyCode === 8 ) {
         // delete key
         this.checkForEmpty() 
-        //this.el.normalize()
       }else if( e.keyCode === 13 ) {
         if( e.ctrlKey ) {
           //e.stopImmediatePropagation()
