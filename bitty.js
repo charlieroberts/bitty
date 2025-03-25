@@ -165,7 +165,7 @@ const bitty = window.bitty = {
   divide( code ) {
     const c = code
       .split('\n')
-      .map( l=> { return l === ' ' || l === '' ? ' ' : l })
+      .map( l=> { return l === '' ? '<br />' : l })
       .map( l=>`<div>${l}</div>`)
       .join('') 
 
@@ -349,7 +349,7 @@ const bitty = window.bitty = {
     setTimeout( v => {
       if( this.el.childNodes.length === 1 && this.el.firstChild.localName === 'br' ) {
         const el = document.createElement('div')
-        el.innerHTML = '&nbsp;'
+        //el.innerHTML = '&nbsp;'
 
         // in case plugin has placed class on <br>, copy it
         el.className = this.el.firstChild.className
