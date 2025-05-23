@@ -2,6 +2,8 @@
 const bitty = window.bitty = {
   instances: [],
 
+  baseFontSize: 12,
+
   uid:0,
   getUID() {
     return this.uid++
@@ -174,6 +176,11 @@ const bitty = window.bitty = {
 
   focus() {
     this.el.focus()
+  },
+
+  changeFontSize( amt ) {
+    this.baseFontSize += amt
+    this.el.style.fontSize = this.baseFontSize + 'px'
   },
   
   // isString=true is for directly setting value
