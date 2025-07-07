@@ -122,7 +122,6 @@ const bitty = window.bitty = {
   
   process( s ) {
     if( typeof Highlight === 'function' ) {
-      console.log( 'el:', this.el )
       const el = this.el
       const rules = this.rules
       const keys = Object.keys( rules )
@@ -142,7 +141,7 @@ const bitty = window.bitty = {
       for( let key of keys ) {
         const hl = new Highlight()
         while ((match = rules[key].exec(text)) !== null) {
-          console.log( `Found ${match[0]} start=${match.index} end=${rules[key].lastIndex} key=${key}.` )  
+          //console.log( `Found ${match[0]} start=${match.index} end=${rules[key].lastIndex} key=${key}.` )  
           this.markRange( match.index, rules[key].lastIndex, key, hl )
         }
         CSS.highlights.set( key,hl )
