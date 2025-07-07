@@ -2,8 +2,6 @@
 const bitty = window.bitty = {
   instances: [],
 
-  baseFontSize: 12,
-
   uid:0,
   getUID() {
     return this.uid++
@@ -64,59 +62,6 @@ const bitty = window.bitty = {
     return manager
   },
 
-  undoManager( bitty ) {
-    const manager = {
-      history:[],
-
-      // load rules from external files
-      rules: {},
-
-      undoIdx: 0,
-
-      // undo/redo adapted from 
-      // https://stackoverflow.com/questions/28217539/allowing-contenteditable-to-undo-after-dom-modification
-      save( force ) {
-        // if we already used undo and made modification - delete all forward history
-        if( this.undoIdx < this.history.length - 1 ){
-          this.history = this.history.slice( 0, this.undoIdx + 1 )
-          this.undoIdx++
-        }
-        const txt = bitty.el.innerHTML;
-        
-        // if current state identical to previous don't save identical states
-        if( txt !== this.history[ this.undoIdx ] || force === 1 ){
-          this.history.push( txt )
-          this.undoIdx = this.history.length - 1
-        }
-
-        while( this.history.length > 50 ) {
-          this.history.shift()
-        }
-      },
-
-      undo(){
-        if( this.undoIdx > 0 ) {
-          const txt = this.history[ this.undoIdx - 1 ]
-          bitty.el.innerHTML = txt
-          this.undoIdx--
-        }
-      },
-
-      redo(){
-        if( this.history[ this.undoIdx + 1 ] ) {
-          const txt = this.history[ this.undoIdx + 1 ]       
-          bitty.el.innerHTML = txt
-          this.undoIdx++
-        }
-      },
-    }
-
-    bitty.subscribe( 'keydown', manager.save.bind( manager ) )
-    bitty.subscribe( 'paste',   manager.save.bind( manager ) )
-
-    return manager
-  },
-
   create( config={} ) {
     let el = null
 
@@ -131,11 +76,8 @@ const bitty = window.bitty = {
 
     Object.defineProperty( obj, 'value', {
       set(v) {
-        let code = this.process( v, true )
-    
-        code = this.divide( code ) 
-
-        this.el.innerHTML = code
+        this.el.innerHTML = this.divide( v ) 
+        this.process( v, true )
       },
 
       get() {
@@ -152,7 +94,6 @@ const bitty = window.bitty = {
 
     obj.editor( obj, el )
     obj.publish( 'init', obj )
-    obj.undoManager = bitty.undoManager( obj )
     obj.keyManager  = bitty.keyManager( obj )
 
     bitty.publish( 'new', obj )
@@ -165,9 +106,10 @@ const bitty = window.bitty = {
   },
 
   divide( code ) {
+    //console.log( 'code:', code )
     const c = code
       .split('\n')
-      .map( l=> { return l === '' ? '<br />' : l })
+      .map( l=> { return l === ' ' || l === '' ? ' ' : l })
       .map( l=>`<div>${l}</div>`)
       .join('') 
 
@@ -177,36 +119,78 @@ const bitty = window.bitty = {
   focus() {
     this.el.focus()
   },
+  
+  process( s ) {
+    if( typeof Highlight === 'function' ) {
+      console.log( 'el:', this.el )
+      const el = this.el
+      const rules = this.rules
+      const keys = Object.keys( rules )
 
-  changeFontSize( amt ) {
-    this.baseFontSize += amt
-    this.el.style.fontSize = this.baseFontSize + 'px'
+      // can't use textContent because it doesn't use line breaks.
+      // if a line is only a break, remove it so that the whole array
+      // can be joined with newlines... this prevents duplicate newlines.
+      // not sure why the newline is replaced with a ' ', but making it
+      // empty causes errors... something to do with checking for empty
+      // divs??? the space is removed at some processing stage.
+      const text = Array.from(el.childNodes)
+              .map( n => n.innerText !== '\n' ? n.innerText : ' ' )
+              .join( '\n' ) 
+
+      // loop through rules, create highlight for each one
+      // add found ranges to highlight and then set the highlight
+      for( let key of keys ) {
+        const hl = new Highlight()
+        while ((match = rules[key].exec(text)) !== null) {
+          console.log( `Found ${match[0]} start=${match.index} end=${rules[key].lastIndex} key=${key}.` )  
+          this.markRange( match.index, rules[key].lastIndex, key, hl )
+        }
+        CSS.highlights.set( key,hl )
+      }
+
+      return text
+    }
+  },
+
+  // rules are matched against the entire program
+  // text. this function loops through all divs found
+  // in the main bitty element, and creates ranges
+  // relative to the div that contains them. if matches
+  // span multiple divs (multiple lines) then the range
+  // is applied across each div
+  markRange( start, end, type, highlights ) {
+    let count = 0
+    let continuing = false
+    for( let node of this.el.childNodes ) {
+      const nodeLength = node.innerText.length
+      if( count + nodeLength >= start ) {
+        if( count + nodeLength >= end ) {
+          const range = new Range()
+          const s = continuing ? 0 : start - count
+          const e = end - count
+          //console.log( start,end,s,e,node )
+          range.setStart(node.firstChild, s )
+          range.setEnd(node.firstChild, e )
+          highlights.add( range )
+          continuing = false
+          break
+        }else{
+          const range = new Range()
+          const s = continuing ? 0 : start - count 
+          const e = nodeLength
+          //console.log( start,end,s,e,node )
+          range.setStart(node.firstChild, s )
+          range.setEnd(node.firstChild, e )
+          highlights.add( range )
+          continuing = true
+        }
+      }
+      // add one to account for line breaks
+      // added to text in getAllText()
+      count += node.innerText.length + 1
+    }
   },
   
-  // isString=true is for directly setting value
-  // el should represent a node element
-  process( s, isString=false ) {
-    const el = this.el
-    const keys = Object.keys( this.rules )
-    const rules = this.rules
-    if( isString ) {
-      for( let key of keys ) {
-        s = s.replace( rules[key], `<span class=bitty-${key}>$1</span>` )
-      }
-    }else{
-      for (const node of el.children) {
-        s = node.innerText
-        for( let key of keys ) {
-          s = s.replace( rules[key], `<span class=bitty-${key}>$1</span>` )
-        }
-
-        node.innerHTML = s.split('\n').join('<br/>')
-      }
-    }
-
-    return s
-  },
-
   subscribe( key, fcn ) {
     const events = this.events
     if( typeof events[ key ] === 'undefined' ) {
@@ -356,7 +340,7 @@ const bitty = window.bitty = {
     setTimeout( v => {
       if( this.el.childNodes.length === 1 && this.el.firstChild.localName === 'br' ) {
         const el = document.createElement('div')
-        //el.innerHTML = '&nbsp;'
+        el.innerHTML = '&nbsp;'
 
         // in case plugin has placed class on <br>, copy it
         el.className = this.el.firstChild.className
@@ -449,12 +433,12 @@ const bitty = window.bitty = {
         this.lastKeyDownCode = e.keyCode
       }
       // handle tab key
+      const tab = '\t'
       if(e.keyCode === 9) {
         const pos = this.caret() + tab.length
         const range = window.getSelection().getRangeAt( 0 )
         range.deleteContents()
         range.insertNode( document.createTextNode( tab ) )
-        //highlight( el )
         this.setCaret( pos )
         e.preventDefault()
       }else if( e.keyCode === 8 ) {
@@ -472,18 +456,12 @@ const bitty = window.bitty = {
         }
       }
 
-      // undo/redo, can't seem to register for
-      // shift+ctrl+z for redo so using ctrl+y
+      // undo/redo
       if( e.key === 'z' && ( e.ctrlKey || e.metaKey ) ) {
-        if( e.shiftKey ) {
-          this.undoManager.redo()
-        }else{
-          this.undoManager.undo()
-        }
-        e.preventDefault()
+        setTimeout( ()=> this.process(), 50 )
       }else if( e.key === 'y' && ( e.ctrlKey || e.metaKey ) ) {
-        this.undoManager.redo()
-        e.preventDefault()
+        //this.undoManager.redo()
+        //e.preventDefault()
       }else{
         this.publish( 'keydown', e )
       }

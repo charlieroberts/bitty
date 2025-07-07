@@ -39,7 +39,7 @@ window.onload = function() {
     value:value2,
     el: document.querySelector('.two'),
     rules : {
-     comments: /(\/\/.*)/g
+     comments2: /(\/\/.*)/g
     }
   })
 

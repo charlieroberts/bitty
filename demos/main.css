@@ -1,13 +1,32 @@
+/*
+ *  syntax coloring rules
+ *
+ *  these rules correspond to the rules you define
+ *  for syntax highlighting. in our javascript demos
+ *  we provide rules for locating keywords, strings,
+ *  comments, and numbers (these rules are located in
+ *  the rules/javascript.js file and are designed to
+ *  be easily modified or replaced).
+ */
+::highlight(keywords) { color:white; } 
+::highlight(strings)  { color:white; }
+::highlight(comments) { background-color:#333; }
+
+/* main editor class */
 .bitty-editor { 
+  /* choose font and size */
   font-family:   'Roboto Mono', monospace; 
-  font-size:     12px; 
-  outline:       none; 
+  font-size:     12px;
+  /* fill viewport with editor */
   height:        100vh;
-  overflow-y:    auto; 
+  /* provide scrollbars if needed */
+  overflow-y:    auto;
+  /* preserve whitespace */
   white-space:   pre-wrap;
 }
 
 .bitty-editor div { 
+  /* ensure all divs are block elements to prevent collapse when empty*/
   display:  block; 
   position: relative; 
 }
@@ -17,7 +36,7 @@
   padding-left:  48px; 
   counter-reset: line; 
 }
-.bitty-editor div::before { 
+.bitty-editor div::before {
   content:           counter(line); 
   counter-increment: line; 
   position:          absolute; 
@@ -29,18 +48,17 @@ body {
   background:black;
   padding:0;
   margin:0;
-  color:white;
+  /* the body color property determines default text color */
+  color:#bbb;
+  /* measured in character length (not pixels/ems etc) */
+  tab-size:2;
 }
 
+/* for when text is selected */
 ::selection {
   background:#444;
   color:white;
 }
-
-/* syntax coloring rules */
-.bitty-keywords { font-weight:bold; }
-.bitty-strings  { font-style:italic; }
-.bitty-comments { font-style:italic; }
 
 /* 
  * fancy pseudo-selector to not color numbers when they are inside
@@ -50,5 +68,5 @@ body {
   color:#faa; 
 }
 
-/* active line highlight */
+/* active line highlight, requires plugin */
 .bitty-active { background:#222 }
