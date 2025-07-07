@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <title>bitty editor</title>
+    <link href='../main.css' rel='stylesheet' />  
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
+    <style>
+      ::highlight(keywords) {
+        color: red;
+        text-shadow: 3px 3px 0 yellow, 
+                     6px 6px 0 green, 
+                     9px 9px 0 blue 
+      }
+      
+      .bitty-editor { font-size: 3em !important; }
+    </style>
+  </head>
+
+  <body>
+    <div class="bitty-editor" contenteditable="true" spellcheck="false"></div>
+    <script src='../../bitty.js' defer></script>
+    <script src='../../rules/javascript.js' defer></script>
+    <script defer>
+    const value = 
+`// THIS DEMO DOES NOT (CURRENTLY) WORK IN FIREFOX
+
+function hello( name ) {
+  console.log( name )
+}
+
+hello( 'bitty' )`
+
+window.onload = function() {
+  const b = bitty.create({ 
+    flashColor:'black',
+    flashTime: 100,
+    value
+  })
+
+  b.subscribe( 'run', eval )
+}
+    </script>
+  </body>
+</html>
