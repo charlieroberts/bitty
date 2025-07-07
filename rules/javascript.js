@@ -5,5 +5,5 @@ window.bitty.rules = {
 
   numbers: /\b(\d+)/g,
 
-  strings: /(".*?"|'.*?'|\`.*?\`)/g
+  strings: /(".*?"|'.*?'|\`(.|\n)*?\`)/g
 }
