@@ -16,7 +16,7 @@
 .bitty-editor { 
   /* choose font and size */
   font-family:   'Roboto Mono', monospace; 
-  font-size:     12px;
+  font-size:     14px;
   /* fill viewport with editor */
   height:        100vh;
   /* provide scrollbars if needed */
@@ -33,14 +33,15 @@
 
 /* remove next two rules if you don't want line numbers */
 .bitty-editor {
-  padding-left:  48px; 
+  padding-left:  4rem; 
   counter-reset: line; 
 }
 .bitty-editor div::before {
   content:           counter(line); 
   counter-increment: line; 
   position:          absolute; 
-  right:             calc(100% + 16px); 
+  /* should accommodate up to 999 lines, otherwise tweak as needed */
+  right:             calc(100% + .75rem); 
   opacity:           0.5; 
 }
 
