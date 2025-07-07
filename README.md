@@ -5,7 +5,7 @@
 bitty is a code editor specifically developed for live coding performance. The design goals are:
 
 - Single file for basic configuration to include via one `<script>` tag
-- Small. bitty is currently ~3 KB minified. Other popular editors (albeit containing many more features) are between 125--350 KB minified.
+- Small. bitty is currently ~6 KB minified. Other popular editors (albeit containing many more features) are between 125--350 KB minified.
 - No build script (ok, there's optionally one to minify, but it's, like, totally optional)
 - Zero dependencies
 - Prioritize simplicity over speed
@@ -20,7 +20,11 @@ The default keybindings are:
 - `Alt+Enter`:  Run (and flash) block surrounding current cursor location. Blocks are delimited by blank lines (including spaces).
 
 ## Syntax coloring
-bitty tries to be as flexible as possible in enabling you to decide what parts of your syntax should be highlighted and how. `bitty.rules` contains a dictionary of regular expressions associated with syntax categories. Whenever a match for a rule is found, it is surrounded in a `<span>` element with a class set to the name `bitty-yourCategoryName`. For example, given the following rules:
+bitty tries to be as flexible as possible in enabling you to decide what parts of your syntax should be highlighted and how. `bitty.rules` contains a dictionary of regular expressions associated with syntax categories. Whenever a match for a rule is found, a CSS custom highlight is applied with the same name as the rule. For example, below is the CSS and JS required to make a highlight for numbers.
+
+```css
+::highlight(numbers) { background-color:red; color:white; }
+```
 
 ```js
 bitty.rules = {
@@ -28,7 +32,13 @@ bitty.rules = {
 }
 ```
 
-... and the text `42` in the code editor, running the syntax coloring will produce: `<span class="bitty-numbers">42</span>`. You then define your own rules for the CSS selectors (e.g. `bitty-numbers`, `bitty-keywords`, `bitty-comments` etc.)
+The [CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API) only supports a small subset of CSS that doesn't affect page layout; this stops the highlights from forcing entire page redraws and instead limits redraw to the highlights alone, improving efficiency. The subset includes:
+
+- `background-color`
+- `color`
+- `caret-color` (aka cursor color)
+- `text-shadow` (not currently supported in Firefox)
+- `text-decoration` (not currently supported in Firefox)
 
 To "disable" syntax coloring, just don't specify a value for `bitty.rules`. If you're not comfortable using regular expressions, [here is a great playground to explore](https://regexr.com/).
 
@@ -61,7 +71,7 @@ window.onload = function() {
 - *el*: The `contenteditable` `<div>` tag that will be used to present the editor. If no `el` is configured then bitty will use the first `contenteditable` div it finds on the page.
 - *value*: A text string to use as the initial code in the editor.
 - *flashColor*: A CSS string representing the color text should take when it "flashes" to indicate that it's being run.
-- *flashBackgounrd*: A CSS string representing of the background color text should take when it "flashes".
+- *flashBackground*: A CSS string representing of the background color text should take when it "flashes".
 - *flashTime*: The number of milliseconds code is flashed when it is run.
 
 This project is in its early early days, more docs / demos to come.
