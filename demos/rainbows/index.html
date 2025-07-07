@@ -13,7 +13,7 @@
                      9px 9px 0 blue 
       }
       
-      .bitty-editor { font-size: 3em !important; }
+      .bitty-editor { font-size: 2em !important; }
     </style>
   </head>
 
@@ -24,12 +24,18 @@
     <script defer>
     const value = 
 `// THIS DEMO DOES NOT (CURRENTLY) WORK IN FIREFOX
+// it should fail somewhat gracefully though. 
+// hit alt+enter to run code.
 
 function hello( name ) {
-  console.log( name )
+  alert( name )
 }
-
-hello( 'bitty' )`
+ 
+function test() {
+  hello( 'test' )
+}
+ 
+test()`
 
 window.onload = function() {
   const b = bitty.create({ 
