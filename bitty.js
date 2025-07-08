@@ -106,11 +106,10 @@ const bitty = window.bitty = {
   },
 
   divide( code ) {
-    //console.log( 'code:', code )
     const c = code
       .split('\n')
-      .map( l=> { return l === ' ' || l === '' ? ' ' : l })
-      .map( l=>`<div>${l}</div>`)
+      .map( l =>  l === '' ? '\n' : l ) // div cannot be empty or it will collapse
+      .map( l => `<div>${l}</div>` )
       .join('') 
 
     return c
@@ -401,8 +400,10 @@ const bitty = window.bitty = {
       // new position is:
       // current position + (text length - line breaks)
       let pos = this.caret()
-      // subtract one from length as last line won't actually contain line break
-      const lineBreakCount = text.split('\n').length - 1
+      // subtract three??? from length as last line won't actually contain line break
+      // TODO where does this magic three number come from? it seems to work but
+      // I have no ideaa why...
+      const lineBreakCount = text.split('\n').length-3
       pos += text.length - lineBreakCount 
 
       const shouldRemoveBlank = (
@@ -415,7 +416,6 @@ const bitty = window.bitty = {
       if( e.target !== this.el && shouldRemoveBlank ) e.target.remove()
 
       setTimeout( ()=> { 
-        this.el.innerHTML = this.divide( this.value )
         this.process()
         setTimeout( ()=>{ this.noDivsInDivs(); this.setCaret( pos ) }, 0 )
       }, 0 )
