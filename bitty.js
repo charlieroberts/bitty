@@ -2,6 +2,8 @@
 const bitty = window.bitty = {
   instances: [],
 
+  baseFontSize: 12,
+
   uid:0,
   getUID() {
     return this.uid++
@@ -117,6 +119,11 @@ const bitty = window.bitty = {
 
   focus() {
     this.el.focus()
+  },
+  
+  changeFontSize( amt ) {
+    this.baseFontSize += amt
+    this.el.style.fontSize = this.baseFontSize + 'px'
   },
   
   process( s ) {
@@ -243,8 +250,8 @@ const bitty = window.bitty = {
     const flashClass = `flash${this.getUID()}`
 
     const rule = `.${flashClass} { 
-      background: ${bitty.config.flashBackground};
-      color: ${bitty.config.flashColor};
+      background: ${this.flashBackground} !important;
+      color: ${this.flashColor} !important;
     }`
 
     const idx = sheet.insertRule( rule )
@@ -283,8 +290,8 @@ const bitty = window.bitty = {
       parentEl.classList.add( flashClass )
 
       const rule = `.${flashClass} { 
-        background: ${bitty.config.flashBackground};
-        color: ${bitty.config.flashColor};
+        background: ${this.flashBackground} !important;
+        color: ${this.flashColor} !important;
       }`
 
       const idx = sheet.insertRule( rule )
