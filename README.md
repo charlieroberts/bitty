@@ -23,7 +23,7 @@ The default keybindings are:
 bitty tries to be as flexible as possible in enabling you to decide what parts of your syntax should be highlighted and how. `bitty.rules` contains a dictionary of regular expressions associated with syntax categories. Whenever a match for a rule is found, a CSS custom highlight is applied with the same name as the rule. For example, below is the CSS and JS required to make a highlight for numbers.
 
 ```css
-::highlight(numbers) { background-color:red; color:white; }
+::highlight( numbers ) { background-color:red; color:white; }
 ```
 
 ```js
@@ -32,7 +32,7 @@ bitty.rules = {
 }
 ```
 
-The [CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API) only supports a small subset of CSS that doesn't affect page layout; this stops the highlights from forcing entire page redraws and instead limits redraw to the highlights alone, improving efficiency. The subset includes:
+The [CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API) only supports a small subset of CSS that doesn't affect page layout; this stops the highlights from forcing entire page redraws and instead limits redraws to the highlights alone, improving efficiency. The subset includes:
 
 - `background-color`
 - `color`
@@ -40,7 +40,7 @@ The [CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/
 - `text-shadow` (not currently supported in Firefox)
 - `text-decoration` (not currently supported in Firefox)
 
-To "disable" syntax coloring, just don't specify a value for `bitty.rules`. If you're not comfortable using regular expressions, [here is a great playground to explore](https://regexr.com/).
+To *disable* syntax coloring, just don't specify a value for `bitty.rules`. If you're not comfortable using regular expressions, [here is a great playground to explore](https://regexr.com/).
 
 ## To use
 Call `bitty.create()`, maybe with some config options, to return a new bitty instance. If you name that instance `b`, call `b.subscribe( 'run', callback )` to register your callback function to be called whenever code is executed. 
@@ -66,6 +66,42 @@ window.onload = function() {
   b.subscribe( 'run', eval )
 }
 ```
+
+## Events
+There are several events you can register for. The syntax for registering for events takes the form `bittyinstance.subscribe( 'eventname', callback )`. The callback will be passed the associated JavaScript Event object. The available events are:
+
+- `click` - whenever a mouse click (or touch) is detected within the editor. Any registered callback will receive a PointerEvent.
+- `keydown` - whenever a key is pressed when the editor is focused. Any registered callback will receive a KeyboardEvent.
+- `keyup` - whenever a key is released when the editor is focused. Any registered callback will receive a KeyboardEvent.
+- `run` - whenever `Alt+Enter` or `Ctrl+Enter` (option and command in macOS) are pressed. Any registered callback will receive the code that was executed followed by the associated KeyboardEvent.
+
+So, for example, to detect whenever Shift+Space is pressed, you might use the following code:
+
+```js
+window.onload = function() {
+  const b = bitty.create()
+  b.subscribe( 'keydown', event => {
+    if( event.shiftKey === true && event.code === 'Space' ) {
+      console.log( 'shift+space detected' )
+    }
+  })
+}
+```
+
+To determine if the `Shift` key is being held when code is run:
+
+```js
+window.onload = function() {
+  const b = bitty.create()
+  b.subscribe( 'run', (code, event) => {
+    if( event.shiftKey === true ) {
+      // run code in special way here
+    }
+  })
+}
+```
+
+Keep in mind that handling key events across different operating systems, languages, and browsers [is](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code) [difficult](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code) and plan accordingly. 
 
 ## Config options
 - *el*: The `contenteditable` `<div>` tag that will be used to present the editor. If no `el` is configured then bitty will use the first `contenteditable` div it finds on the page.
