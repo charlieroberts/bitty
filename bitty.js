@@ -431,6 +431,13 @@ const bitty = window.bitty = {
 
       // now paste continues as usual, no blocking the default event...
     },
+
+    // stops extra line breaks from being included in copy
+    copy( e ) {
+      const selection = document.getSelection()
+      e.clipboardData.setData( 'text/plain', selection.toString() )
+      e.preventDefault()
+    },
     
    
     keydown( e ) { //el.addEventListener( 'keydown', e => {
