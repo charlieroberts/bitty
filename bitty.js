@@ -213,16 +213,16 @@ const bitty = window.bitty = {
     }
   },
 
-  publish( key, data ) {
+  publish( key, ...data ) {
     const events = this.events
     if( typeof events[ key ] !== 'undefined' ) {
       const arr = events[ key ]
 
-      arr.forEach( v => v( data ) )
+      arr.forEach( v => v( ...data ) )
     }
   },
 
-  runBlock() {
+  runBlock( e ) {
     const sel = window.getSelection()
     let str = ''
     let parentEl = sel.anchorNode.parentElement
@@ -265,10 +265,10 @@ const bitty = window.bitty = {
 
     str = divs.map( d => d.innerText ).join('\n')
 
-    this.publish( 'run', str )
+    this.publish( 'run', str, e )
   },
 
-  runSelection() {
+  runSelection( e ) {
     const sel = window.getSelection()
     let str   = sel.toString()
 
@@ -307,7 +307,7 @@ const bitty = window.bitty = {
       setTimeout( ()=> sheet.removeRule( idx ), 250 )
     }
 
-    this.publish( 'run', str )
+    this.publish( 'run', str, e )
   },
 
 
@@ -461,11 +461,11 @@ const bitty = window.bitty = {
         if( e.ctrlKey ) {
           //e.stopImmediatePropagation()
           e.preventDefault()
-          this.runSelection()
+          this.runSelection( e )
         }else if( e.altKey ) {
           //e.stopImmediatePropagation()
           e.preventDefault()
-          this.runBlock()
+          this.runBlock( e )
         }
       }
 
