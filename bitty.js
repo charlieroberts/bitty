@@ -83,7 +83,7 @@ const bitty = window.bitty = {
       },
 
       get() {
-        return this.el.innerText
+        return this.getCorrectText()
       }
     })
 
@@ -107,6 +107,12 @@ const bitty = window.bitty = {
     return obj
   },
 
+  // make sure each line is inside it's own div
+  // we add a newline so that divs won't collapse on becoming
+  // "empty". We can force each div to stay uncollapsed by specifying
+  // a height, but even if not physically collapsed such lines will be
+  // skipped when using arrow key movements... you can only click into them.
+  // preserving divs with newlines seems like the best option here.
   divide( code ) {
     const c = code
       .split('\n')
@@ -116,6 +122,25 @@ const bitty = window.bitty = {
 
     return c
   },
+
+  // OK, so, contenteditable automatically add <br> or \n to empty divs inside of
+  // them. We want to ignore these, and instead just use our inner divs as indications
+  // of line breaks. This function takes care of that.
+  getCorrectText() {
+    const nodes = this.el.childNodes
+    let str = ''
+    for( let node of nodes ) {
+      if( node.innerText !== '\n' && node.innerText !== '<br>') {
+        // will be text node if this is performed after paste
+        str += node.nodeType === 3 ? node.nodeValue : node.innerText
+      }
+      // do not add new line to final line of code
+      if( node !== this.el.lastChild ) {
+        str += '\n'
+      }
+    }
+    return str
+  }, 
 
   focus() {
     this.el.focus()
@@ -423,12 +448,13 @@ const bitty = window.bitty = {
       if( e.target !== this.el && shouldRemoveBlank ) e.target.remove()
 
       setTimeout( ()=> { 
-        this.process()
-        setTimeout( ()=>{ this.noDivsInDivs(); this.setCaret( pos ) }, 0 )
+        this.value = this.value
+        setTimeout( ()=>{ this.noDivsInDivs(); this.setCaret( pos ) }, 5 )
       }, 0 )
 
       this.publish( 'paste', e )
 
+      //e.preventDefault()
       // now paste continues as usual, no blocking the default event...
     },
 
