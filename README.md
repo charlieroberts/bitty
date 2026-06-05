@@ -1,3 +1,5 @@
+This repository is now archived. I've changed the repo name to *teeny* and [moved it to codeberg](https://codeberg.org/charlieroberts/teeny).
+
 # bitty
 
 [Try it out](https://charlieroberts.github.io/bitty/demos/js)
